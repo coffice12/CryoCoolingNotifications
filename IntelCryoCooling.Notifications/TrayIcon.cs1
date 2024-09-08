@@ -1,0 +1,940 @@
+using System;
+using System.ComponentModel;
+using System.Configuration;
+using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
+using System.IO;
+using System.IO.Pipes;
+using System.Linq;
+using System.Reflection;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
+using System.ServiceProcess;
+using System.Text;
+using System.Threading;
+using System.Windows.Forms;
+using IntelCryoCooling.CondensationControlServiceRef;
+using IntelCryoCooling.Properties;
+using Microsoft.Win32;
+using NLog;
+using SoftwareUpdateLib;
+
+namespace IntelCryoCooling.Notifications;
+
+public class TrayIcon : Form, IDisposable
+{
+	public sealed class MyCustomMessageBox
+	{
+		private static volatile MyCustomMessageBox _instance = null;
+
+		private static object padlock = new object();
+
+		public static MyCustomMessageBox Instance
+		{
+			get
+			{
+				if (_instance == null)
+				{
+					lock (padlock)
+					{
+						if (_instance == null)
+						{
+							_instance = new MyCustomMessageBox();
+						}
+					}
+				}
+				return _instance;
+			}
+		}
+
+		private MyCustomMessageBox()
+		{
+		}
+
+		public int ShowMe(string message, string aPPLICATION_NAME, string button1, string button2, MessageBoxIcon icon)
+		{
+			{"id":"chatcmpl-66dde415efe3b3669c9b98a1","object":"chat.completion","created":1725817877,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 尝试执行以下代码块\ntry\n{\n    // 使用CustomMessageBox类创建一个消息框实例，传入消息、应用程序名称、按钮1、按钮2和图标\n    using (CustomMessageBox customMessageBox = new CustomMessageBox(message, aPPLICATION_NAME, button1, button2, icon))\n    {\n        // 将_isMessageVisible标记为true，表示消息框现在可见\n        _isMessageVisible = true;\n        // 显示消息框（模态对话框），并等待用户响应\n        customMessageBox.ShowDialog();\n        // 用户响应后，将_isMessageVisible标记为false，表示消息框不再可见\n        _isMessageVisible = false;\n    }\n}\n// 如果在try代码块中发生任何异常，将捕获异常但不执行任何操作\ncatch (Exception)\n{\n    // 此处没有代码，意味着异常被捕获但不做任何处理\n}\n// 无论try代码块是否成功执行，finally代码块都会执行\nfinally\n{\n    // 将_isMessageVisible标记为false，确保消息框的状态被正确更新，即使在异常发生时也是如此\n    _isMessageVisible = false;\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":114,"completion_tokens":242,"total_tokens":356}}
+			{"id":"chatcmpl-66dde4155c029f50dfb40f78","object":"chat.completion","created":1725817877,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"当然可以，下面是添加了注释的代码：\n\n```c\n// 表示程序正常结束，返回值为0\nreturn 0;\n```\n\n这段代码是C语言中常见的结束程序并返回状态码的方式，其中`0`通常表示程序成功执行。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":56,"total_tokens":101}}
+		}
+	}
+
+	private delegate void ShowMyCustomMessageBoxDelegate(string strMessage, string strCaption, MessageBoxButtons mbButtons, MessageBoxIcon mbIcon);
+
+	private NotifyIcon ni;
+
+	private static Logger log = LogManager.GetCurrentClassLogger();
+
+	private static EndpointAddress endpointAdress = new EndpointAddress("net.pipe://localhost/IntelCryoCooling/ctrlservice");
+
+	private static System.ServiceModel.Channels.Binding binding = new NetNamedPipeBinding();
+
+	private static CryoCoolingServiceClient serviceHandle;
+
+	private System.Threading.Timer RefreshTrayTimer;
+
+	private System.Threading.Timer SoftwareUpdateTimer;
+
+	internal static DiagnosticTest diagnosticform;
+
+	private static int BaloonTipTimeOutInMS = 2000;
+
+	private static int DefaultTimerIntervalInMS = 2450;
+
+	private static int TrayPipeWaitTimeInMS = 3500;
+
+	private static string QueryCommunicationPipe = "Intel.CryoCooling.QueryPipe";
+
+	private static string SWUPDATE_MANIFEST_URL = "https://downloadmirror.intel.com/715182/config.xml";
+
+	private string SwVersion;
+
+	internal static OperationMode currentOperationMode = OperationMode.Pending;
+
+	private TrayIconColor previousIconColor = TrayIconColor.BLUE;
+
+	private string previousMessage = string.Empty;
+
+	private string previousPollErrorMessage = string.Empty;
+
+	private string fwVersion = string.Empty;
+
+	private string microcodeVersion = string.Empty;
+
+	private static IFaq faq = new FaqWeb();
+
+	private Icon ICON_BLUE = Resources.alert_blue;
+
+	private Icon ICON_GREEN = Resources.alert_green;
+
+	private Icon ICON_PURPLE = Resources.alert_purple;
+
+	private Icon ICON_RED = Resources.alert_red;
+
+	private Icon ICON_YELLOW = Resources.alert_yellow;
+
+	private MenuItem currentStatusMessage = new MenuItem();
+
+	private MenuItem statsMessage = new MenuItem();
+
+	private MenuItem statsMessage2 = new MenuItem();
+
+	private MenuItem menuSeparator = new MenuItem();
+
+	private MenuItem selectMode = new MenuItem();
+
+	private MenuItem standByMode = new MenuItem();
+
+	private MenuItem cryoMode = new MenuItem();
+
+	private MenuItem unRegulatedMode = new MenuItem();
+
+	private MenuItem manualMode = new MenuItem();
+
+	private MenuItem about = new MenuItem();
+
+	private MenuItem swVersionMenuItem = new MenuItem();
+
+	private MenuItem fwVersionMenuItem = new MenuItem();
+
+	private MenuItem mcVersionMenuItem = new MenuItem();
+
+	private MenuItem swUpdatesMenuItem = new MenuItem();
+
+	private MenuItem swRememberCryoMenuItem = new MenuItem();
+
+	private MenuItem helpMenuItem = new MenuItem();
+
+	private MenuItem faqMenuItem = new MenuItem();
+
+	private MenuItem testMenuItem = new MenuItem();
+
+	private MenuItem exitMenuItem = new MenuItem();
+
+	internal static MyCustomMessageBox messageboxform;
+
+	private bool IsCoolerReady;
+
+	private bool OnStartupResumeCryoSuccess;
+
+	private bool RememberCryoSetting;
+
+	private IContainer components;
+
+	private bool hasTimerDisabled { get; set; }
+
+	public static bool _isMessageVisible { get; set; }
+
+	private static void ShowMyCustomMessageBox(string strMessage, string strCaption, MessageBoxButtons mbButtons, MessageBoxIcon mbIcon)
+	{
+		{"id":"chatcmpl-66dde415d8f1a02e49dff511","object":"chat.completion","created":1725817877,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 尝试执行以下代码块\ntry\n{\n    // 定义一个整型变量num并初始化为-1\n    int num = -1;\n    \n    // 检查是否消息框不可见\n    if (!_isMessageVisible)\n    {\n        // 如果messageboxform为null，则将其实例化为MyCustomMessageBox的单例\n        if (messageboxform == null)\n        {\n            messageboxform = MyCustomMessageBox.Instance;\n        }\n        \n        // 根据mbButtons的值决定显示的消息框按钮\n        num = ((mbButtons != 0) ? messageboxform.ShowMe(strMessage, strCaption, \"OK\", \"Cancel\", mbIcon) : messageboxform.ShowMe(strMessage, strCaption, \"OK\", \"\", mbIcon));\n    }\n    \n    // 如果num的值不为-1，则设置_isMessageVisible为false\n    if (num != -1)\n    {\n        _isMessageVisible = false;\n    }\n}\n// 捕获任何异常，但不进行任何处理\ncatch (Exception)\n{\n}\n// 无论try块中的代码是否成功执行，都会执行finally块中的代码\nfinally\n{\n    // 将_isMessageVisible设置为false\n    _isMessageVisible = false;\n}\n```\n\n以上代码添加了详细的注释，解释了每一行代码的作用，同时保持了原有代码的完整性和结构。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":181,"completion_tokens":289,"total_tokens":470}}
+	}
+
+	public static void ShowMyCustomMessageBoxAsync(string strMessage, string strCaption, MessageBoxButtons mbButtons, MessageBoxIcon mbIcon)
+	{
+		{"id":"chatcmpl-66dde415d8f1a02e49dff512","object":"chat.completion","created":1725817877,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个委托，用于调用自定义的消息框显示方法\nnew ShowMyCustomMessageBoxDelegate(ShowMyCustomMessageBox).BeginInvoke(\n    // 传递消息文本\n    strMessage,\n    // 传递消息框标题\n    strCaption,\n    // 传递按钮类型\n    mbButtons,\n    // 传递图标类型\n    mbIcon,\n    // 异步调用时的回调函数，此处为null，表示没有回调\n    null,\n    // 异步调用时传递给回调函数的参数，此处为null，表示没有额外参数\n    null\n);\n```\n\n这段代码定义了一个委托`ShowMyCustomMessageBoxDelegate`，它指向一个名为`ShowMyCustomMessageBox`的方法。然后，使用`BeginInvoke`方法异步地调用这个委托，传递了消息文本、标题、按钮类型和图标类型作为参数。回调函数和回调参数在这个例子中没有使用，所以它们被设置为`null`。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":71,"completion_tokens":205,"total_tokens":276}}
+	}
+
+	public static void ShowMyCustomMessageBoxAsync(string strMessage, string strCaption, MessageBoxButtons mbButtons, MessageBoxIcon mbIcon, ref IAsyncResult asyncResult)
+	{
+		{"id":"chatcmpl-66dde4152d1834b861aea42d","object":"chat.completion","created":1725817877,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查异步结果是否为空或者是否已完成\nif (asyncResult == null || asyncResult.IsCompleted)\n{\n    // 定义一个委托，用于显示自定义消息框\n    ShowMyCustomMessageBoxDelegate showMyCustomMessageBoxDelegate = ShowMyCustomMessageBox;\n    \n    // 调用BeginInvoke方法开始异步调用显示消息框的方法\n    // 传入消息内容、标题、按钮类型、图标类型，以及两个null参数\n    // 这将不会阻塞当前线程，而是在后台线程中执行\n    asyncResult = showMyCustomMessageBoxDelegate.BeginInvoke(strMessage, strCaption, mbButtons, mbIcon, null, null);\n}\n```\n这段代码注释了每一行代码的作用，没有省略或修改原有代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":101,"completion_tokens":161,"total_tokens":262}}
+	}
+
+	public TrayIcon()
+	{
+		InitializeComponent();
+		try
+		{
+			string oSInfo = SystemInfoHelper.GetOSInfo();
+			log.Info("Running on windows {0}", oSInfo);
+			SwVersion = Program.GetSwVersion();
+			log.Info("Running on SW {0}", SwVersion);
+			ni = new NotifyIcon
+			{
+				Text = "Intel® Cryo Cooling Technology"
+			};
+			SystemEvents.PowerModeChanged += OnPowerChange;
+		}
+		catch (Exception ex)
+		{
+			log.Error("Init : {ex}", ex.ToString());
+		}
+	}
+
+	public void Display()
+	{
+		try
+		{
+			ni.Icon = new Icon(ICON_BLUE, ICON_BLUE.Size);
+			currentStatusMessage = new MenuItem("Intel® Cryo Cooling Technology");
+			currentStatusMessage.Name = "Status";
+			currentStatusMessage.Enabled = false;
+			statsMessage.Name = "Stats";
+			statsMessage.Visible = false;
+			statsMessage.Enabled = false;
+			statsMessage2.Name = "Stats2";
+			statsMessage2.Visible = false;
+			statsMessage2.Enabled = false;
+			menuSeparator = new MenuItem("-");
+			selectMode = new MenuItem("Mode");
+			standByMode = new MenuItem(UIMode.Standby.ToString(), ChangeOperationMode);
+			cryoMode = new MenuItem(UIMode.Cryo.ToString(), ChangeOperationMode);
+			unRegulatedMode = new MenuItem(UIMode.Unregulated.ToString(), ChangeOperationMode);
+			manualMode = new MenuItem(UIMode.Manual.ToString(), ChangeOperationMode);
+			manualMode.Enabled = false;
+			manualMode.BarBreak = true;
+			{"id":"chatcmpl-66dde418573308e7d13617c4","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将名为manualMode的控件的可见性设置为不可见\nmanualMode.Visible = false;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":29,"total_tokens":76}}
+			selectMode.MenuItems.Add(manualMode);
+			selectMode.MenuItems.Add(standByMode);
+			selectMode.MenuItems.Add(cryoMode);
+			selectMode.MenuItems.Add(unRegulatedMode);
+			helpMenuItem = new MenuItem("Help");
+			testMenuItem = new MenuItem("Run Diagnostic test", RunDiagnosticTest);
+			faqMenuItem = new MenuItem("FAQ", OpenFAQ);
+			helpMenuItem.MenuItems.Add(faqMenuItem);
+			helpMenuItem.MenuItems.Add(testMenuItem);
+			swVersionMenuItem = new MenuItem($"SW Version : {SwVersion}");
+			about = new MenuItem("About");
+			about.Name = "About";
+			about.MenuItems.Add(swVersionMenuItem);
+			about.MenuItems.Add(fwVersionMenuItem);
+			about.MenuItems.Add(mcVersionMenuItem);
+			swUpdatesMenuItem = new MenuItem("Check for updates...", ToggleUISoftwareUpdates);
+			about.MenuItems.Add(swUpdatesMenuItem);
+			swVersionMenuItem.Enabled = false;
+			swUpdatesMenuItem.Checked = IsUpdateEnabled();
+			fwVersionMenuItem.Name = "FWVersion";
+			fwVersionMenuItem.Enabled = false;
+			fwVersionMenuItem.Visible = false;
+			mcVersionMenuItem.Name = "MCVersion";
+			mcVersionMenuItem.Enabled = false;
+			mcVersionMenuItem.Visible = false;
+			swRememberCryoMenuItem = new MenuItem("Remember Cryo Mode", ToggleRememberCryoForSleep);
+			about.MenuItems.Add(swRememberCryoMenuItem);
+			RememberCryoSetting = IsRememberCryoEnabled();
+			swRememberCryoMenuItem.Checked = RememberCryoSetting;
+			exitMenuItem = new MenuItem("Exit", Exit);
+			ni.ContextMenu = new ContextMenu(new MenuItem[8] { currentStatusMessage, statsMessage, statsMessage2, menuSeparator, selectMode, helpMenuItem, about, exitMenuItem });
+			ni.Visible = true;
+			ni.MouseUp -= IconMouseUp;
+			ni.MouseUp += IconMouseUp;
+			RefreshTrayTimer = new System.Threading.Timer(RunTimerTask, null, 0, -1);
+			SoftwareUpdateTimer = new System.Threading.Timer(RunSoftwareUpdateTask, null, 0, -1);
+		}
+		catch (Exception ex)
+		{
+			log.Error("Display : {ex}", ex.ToString());
+		}
+	}
+
+	private bool IsUpdateEnabled()
+	{
+		{"id":"chatcmpl-66dde4155d8e508194c787ad","object":"chat.completion","created":1725817877,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 定义一个字符串参数，赋值为 \"CheckForUpdates\"\nstring param = \"CheckForUpdates\";\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":50,"completion_tokens":27,"total_tokens":77}}
+		{"id":"chatcmpl-66dde4159be6dd0c0ecc6f7b","object":"chat.completion","created":1725817877,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 调用SystemInfoHelper类的GetCurrentUserRegistrySetting方法以获取当前用户注册表设置\n// 传入的参数是注册表路径\"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\Updates\"和参数param\n// 将获取到的值与字符串\"True\"进行比较，忽略大小写\n// 如果相等，返回true，否则返回false\nreturn SystemInfoHelper.GetCurrentUserRegistrySetting(\"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\Updates\", param).Equals(\"True\", StringComparison.CurrentCultureIgnoreCase);\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":77,"completion_tokens":121,"total_tokens":198}}
+	}
+
+	private bool IsRememberCryoEnabled()
+	{
+		{"id":"chatcmpl-66dde4159be6dd0c0ecc6f7c","object":"chat.completion","created":1725817877,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 定义一个字符串变量param，并赋值为\"RememberCryoMode\"\nstring param = \"RememberCryoMode\";\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":51,"completion_tokens":30,"total_tokens":81}}
+		{"id":"chatcmpl-66dde415b2bc02790419cbab","object":"chat.completion","created":1725817877,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 调用SystemInfoHelper类中的GetCurrentUserRegistrySetting方法\n// 该方法用于获取当前用户注册表中的特定设置值\n// 参数1: 注册表路径 \"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\CryoMode\"\n// 参数2: param，一个参数，具体作用未在代码中给出，可能用于指定获取值的类型或其他选项\nbool isCryoModeEnabled = SystemInfoHelper.GetCurrentUserRegistrySetting(\"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\CryoMode\", param).Equals(\"True\", StringComparison.CurrentCultureIgnoreCase);\n\n// 将获取到的注册表值与字符串\"True\"进行比较\n// StringComparison.CurrentCultureIgnoreCase 指定比较时忽略大小写\n// 如果相等，则isCryoModeEnabled为true，表示CryoMode已启用\n// 如果不相等，则isCryoModeEnabled为false，表示CryoMode未启用\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":79,"completion_tokens":199,"total_tokens":278}}
+	}
+
+	private void RunSoftwareUpdateTask(object state)
+	{
+		{"id":"chatcmpl-66dde41542bd17c03fde4287","object":"chat.completion","created":1725817877,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 尝试执行以下代码块\ntry\n{\n    // 记录调试信息，表示软件更新任务开始\n    log.Debug(\"BGN Software Update Task\");\n\n    // 检查是否禁用了计时器并且更新功能是否启用\n    if (!hasTimerDisabled \u0026\u0026 IsUpdateEnabled())\n    {\n        // 定义软件更新清单的URL\n        string text = SWUPDATE_MANIFEST_URL;\n\n        // 从配置管理器中获取应用程序设置中的软件更新清单URL\n        string text2 = ConfigurationManager.AppSettings[\"SWUPDATE_MANIFEST_URL\"];\n\n        // 如果配置管理器中的URL不为空，则使用该URL\n        if (!string.IsNullOrEmpty(text2))\n        {\n            text = text2;\n        }\n\n        // 记录调试信息，表示正在使用服务器URL检查软件更新\n        log.Debug(\"Checking software update with server {}.\", text);\n\n        // 获取软件更新的路径\n        string swUpdatePath = GetSwUpdatePath();\n\n        // 获取程序的当前版本号\n        string swVersion = Program.GetSwVersion();\n\n        // 创建软件更新信息对象\n        SoftwareUpdateInformation softwareUpdateInformation = new SoftwareUpdateInformation();\n\n        // 设置当前版本\n        softwareUpdateInformation.currentVersion = new Version(swVersion);\n\n        // 设置语言\n        softwareUpdateInformation.language = new CultureInfo(\"en\");\n\n        // 设置临时文件路径\n        softwareUpdateInformation.tempFilePath = swUpdatePath;\n\n        // 设置平台\n        softwareUpdateInformation.platform = \"x64\";\n\n        // 设置清单URL\n        softwareUpdateInformation.manifestUrl = text;\n\n        // 设置产品名称\n        softwareUpdateInformation.productName = \"Intel Cryo Cooling Technology\";\n\n        // 设置注册表路径\n        softwareUpdateInformation.registryPath = \"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\Updates\";\n\n        // 设置错误消息\n        softwareUpdateInformation.errorMessage = \"Intel(R) Cryo Cooling Technology Software update failed.\";\n\n        // 设置回调函数\n        softwareUpdateInformation.callback = SWUpdateCallback;\n\n        // 运行更新检查并显示用户界面\n        new SoftwareUpdate(softwareUpdateInformation).RunUpdateCheckWithUI();\n    }\n}\n// 如果在执行过程中发生异常，捕获异常并记录错误信息\ncatch (Exception ex)\n{\n    log.Error(\"An exception occured in fetching updates : {0}\", ex.Message);\n}\n// 无论是否发生异常，都会执行以下代码\nfinally\n{\n    // 设置定时器的延迟时间为3天（259200000毫秒）\n    int dueTime = 259200000;\n    SoftwareUpdateTimer.Change(dueTime, -1);\n\n    // 记录调试信息，表示软件更新任务结束\n    log.Debug(\"END Software Update Task\");\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":372,"completion_tokens":572,"total_tokens":944}}
+	}
+
+	private string GetSwUpdatePath()
+	{
+		{"id":"chatcmpl-66dde415f30b393947a79900","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个字符串变量 text\nstring text;\n\n// 使用 Path.Combine 方法将两个路径组合成一个完整的路径\n// Path.GetPathRoot 方法获取系统驱动器的根路径，例如 \"C:\\\" 或 \"D:\\\"\n// Environment.GetFolderPath 方法获取指定的系统文件夹路径，这里使用 Environment.SpecialFolder.System 来获取系统文件夹的路径\n// \"Intel\" 是要添加到系统文件夹路径后面的子目录\ntext = Path.Combine(\n    Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System)), \n    \"Intel\"\n);\n\n// 代码结束，没有修改或省略原有代码\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":61,"completion_tokens":130,"total_tokens":191}}
+		{"id":"chatcmpl-66dde415a34a0e0fe6848786","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查指定的目录是否存在\nif (!Directory.Exists(text))\n{\n    // 如果目录不存在，则尝试创建该目录\n    try\n    {\n        // 记录调试信息，表明目录不存在，正在尝试创建\n        log.Debug(\"{UPDATE_DIR} not found. Creating DIR\", text);\n        \n        // 创建目录\n        Directory.CreateDirectory(text);\n    }\n    catch (Exception ex)\n    {\n        // 如果创建目录失败，则记录警告信息，并提供错误详情\n        log.Warn(\"Failed to create {UPDATE_DIR}. Details {error}\", text, ex.Message);\n        \n        // 将text变量设置为系统的临时路径，以便后续操作可以使用临时目录\n        text = Path.GetTempPath();\n    }\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":120,"completion_tokens":158,"total_tokens":278}}
+		{"id":"chatcmpl-66dde4160e249f576e7b98b0","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 以下代码行用于在调试模式下记录信息，表示正在保存软件更新到指定目录\nlog.Debug(\"Save software update to {UPDATE_DIR}\", text);\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":55,"completion_tokens":42,"total_tokens":97}}
+		{"id":"chatcmpl-66dde416a34a0e0fe6848787","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"当然可以，下面是添加了注释的代码：\n\n```java\n// 定义一个方法，返回一个字符串\npublic String returnText() {\n    // 定义一个字符串变量，存储要返回的文本\n    String text = \"这是要返回的文本内容\";\n\n    // 返回定义好的字符串变量\n    return text;\n}\n```\n\n在这个代码中，我添加了注释来解释每一行代码的作用，但是没有省略或修改原有的代码。希望这对你有帮助！"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":99,"total_tokens":143}}
+	}
+
+	private static void SWUpdateCallback(SoftwareUpdate.UpdateProgressStatus status, string newVersion)
+	{
+		{"id":"chatcmpl-66dde41637d2ca1ac553e767","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 尝试执行以下代码块\ntry\n{\n    // 如果成功，记录信息级别的日志，其中包含软件更新的版本号和状态\n    log.Info(\"SW Update Version - {0} : {1} \", newVersion, status);\n}\n// 如果在尝试过程中发生异常，捕获异常并执行以下代码块\ncatch (Exception ex)\n{\n    // 记录错误级别的日志，包含异常信息\n    log.Error(\"SWUpdateCallback : {0} \", ex.Message);\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":97,"completion_tokens":114,"total_tokens":211}}
+	}
+
+	private void RunTimerTask(object stateInfo)
+	{
+		{"id":"chatcmpl-66dde416c81df0fa8f0bba45","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查是否禁用了计时器\nif (hasTimerDisabled)\n{\n    // 如果计时器被禁用，则设置托盘定时器的间隔为默认值，并停止计时器\n    RefreshTrayTimer.Change(DefaultTimerIntervalInMS, -1);\n    // 退出方法，不执行后续代码\n    return;\n}\n```\n这段代码的作用是，如果变量`hasTimerDisabled`为真（即计时器被禁用），则调用`RefreshTrayTimer.Change`方法，将定时器的间隔设置为`DefaultTimerIntervalInMS`（默认的毫秒数），并将第二个参数设置为-1，这通常用于停止定时器。之后，使用`return`语句立即退出当前方法，不再执行后续的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":69,"completion_tokens":165,"total_tokens":234}}
+		{"id":"chatcmpl-66dde416a34a0e0fe6848789","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 创建一个名为Stopwatch的变量，用来记录时间\n{"id":"chatcmpl-66dde4172d1834b861aea434","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 创建一个Stopwatch对象的实例\nStopwatch stopwatch = new Stopwatch();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":21,"total_tokens":69}}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":25,"total_tokens":73}}
+		{"id":"chatcmpl-66dde41631e3b72e6b502502","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 启动计时器\n{"id":"chatcmpl-66dde4175c029f50dfb40f7d","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 启动计时器\nstopwatch.Start();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":17,"total_tokens":62}}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":17,"total_tokens":62}}
+		{"id":"chatcmpl-66dde416350932951471a199","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查冷却器是否准备就绪，或者服务句柄是否为null\nif (!IsCoolerReady || serviceHandle == null)\n{\n    // 如果冷却器未准备好或服务句柄为null，则回收服务句柄\n    RecycleServiceHandle();\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":64,"completion_tokens":64,"total_tokens":128}}
+		{"id":"chatcmpl-66dde416e1666afe278f4e75","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查serviceHandle是否不为null，如果不为null则执行大括号内的代码\nif (serviceHandle != null)\n{\n    // 尝试执行以下代码块，如果在执行过程中发生异常，则会捕获异常并执行catch块中的代码\n    try\n    {\n        // 声明一个HwUpdateStatus类型的变量success和一个string类型的变量message用于接收方法返回值\n        HwUpdateStatus success;\n        string message;\n        // 调用serviceHandle的GetBoardStatus方法，并将返回的BoardRegisterMapping对象赋值给boardStatus\n        BoardRegisterMapping boardStatus = serviceHandle.GetBoardStatus(out success, out message);\n        // 如果boardStatus不为null，则将IsCoolerReady的值设置为boardStatus的BoardInitCompleted属性的值\n        if (boardStatus != null)\n        {\n            IsCoolerReady = boardStatus.BoardInitCompleted.Value;\n        }\n        // 如果fwVersion为空或者为null，则调用GetFWVersion方法\n        if (string.IsNullOrEmpty(fwVersion))\n        {\n            GetFWVersion();\n        }\n        // 如果microcodeVersion为空或者为null，或者microcodeVersion的值为\"NA\"，则调用UpdateOcTvbMenuStatus方法\n        if (string.IsNullOrEmpty(microcodeVersion) || microcodeVersion.Equals(\"NA\"))\n        {\n            UpdateOcTvbMenuStatus();\n        }\n    }\n    // 如果在try块中发生异常，则执行catch块中的代码\n    catch (Exception ex)\n    {\n        // 使用log对象记录警告信息，信息内容为异常的Message属性值\n        log.Warn(ex.Message);\n    }\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":180,"completion_tokens":346,"total_tokens":526}}
+		{"id":"chatcmpl-66dde4169be6dd0c0ecc6f7e","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查冷却器是否准备就绪，或者服务句柄是否为null\nif (!IsCoolerReady || serviceHandle == null)\n{\n    // 根据服务句柄是否为null，设置相应的消息\n    string message2 = ((serviceHandle == null) ? \"Waiting for Cryo service to start\" : \"Waiting for Cryo cooler to start up\");\n    // 记录信息到日志\n    log.Info(message2);\n    // 更新托盘通知项\n    UpdateTrayNotificationItems(new Notification\n    {\n        Message = message2, // 设置通知消息\n        TrayIconColor = TrayIconColor.YELLOW, // 设置托盘图标颜色为黄色\n        ToolTipIcon = ToolTipIcon.Info, // 设置工具提示图标为信息图标\n        ShowBaloonTip = false // 设置不显示气球提示\n    });\n}\nelse\n{\n    // 检查是否可以恢复冷却操作\n    CheckResumeCryoOperation();\n    // 轮询消息\n    if (PollMessages())\n    {\n        // 获取当前操作模式\n        GetCurrentOperationMode();\n    }\n    else\n    {\n        // 如果轮询消息失败，记录警告信息\n        log.Warn(\"Failed to call PollMessages\");\n    }\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":191,"completion_tokens":261,"total_tokens":452}}
+		{"id":"chatcmpl-66dde416f9e61e3ab39747c2","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 设置 RefreshTrayTimer 的下一次触发时间\n// Math.Max 确保时间间隔不会小于 0\n// DefaultTimerIntervalInMS 是默认的时间间隔，单位是毫秒\n// stopwatch.ElapsedMilliseconds 表示 stopwatch 计时器已经计时的毫秒数\n// 减去已经计时的毫秒数，确保下一次触发不会立即发生，而是在预定的时间后\nRefreshTrayTimer.Change(\n    Math.Max(0L, DefaultTimerIntervalInMS - stopwatch.ElapsedMilliseconds), // 计算下一次触发的时间间隔\n    -1L // 表示触发的周期性，-1 表示一次性触发，不重复\n);\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":67,"completion_tokens":144,"total_tokens":211}}
+		{"id":"chatcmpl-66dde416a34a0e0fe684878b","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个日志记录器，用于记录调试信息\nlog.Debug(\"Timertask executed in {0}ms\", stopwatch.ElapsedMilliseconds);\n// 这行代码使用日志记录器的Debug方法，输出一个调试信息\n// 其中\"Timertask executed in {0}ms\"是格式化字符串，{0}是一个占位符\n// stopwatch.ElapsedMilliseconds是Stopwatch类的一个属性，表示计时器经过的毫秒数\n// 这个属性的值会被替换到格式化字符串的{0}位置，最终输出类似\"Timertask executed in 123ms\"的信息\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":59,"completion_tokens":132,"total_tokens":191}}
+		{"id":"chatcmpl-66dde41637d2ca1ac553e769","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 这行代码表示停止计时器，计时器对象名为 stopwatch\nstopwatch.Stop();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":28,"total_tokens":73}}
+	}
+
+	private void CheckResumeCryoOperation()
+	{
+		{"id":"chatcmpl-66dde4166de73473f2d0695a","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查是否在启动时成功恢复了冷冻状态\nif (OnStartupResumeCryoSuccess)\n{\n    // 如果成功，则直接返回，不执行后续代码\n    return;\n}\n```\n这段代码是一个条件判断，用于检查一个名为 `OnStartupResumeCryoSuccess` 的变量是否为真。如果为真，则执行 `return` 语句，直接退出当前的方法或函数，不继续执行后续的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":57,"completion_tokens":96,"total_tokens":153}}
+		{"id":"chatcmpl-66dde4160e249f576e7b98b1","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查是否需要记住冷冻设置\nif (RememberCryoSetting)\n{\n    // 如果需要记住冷冻设置，则在托盘UI启动时记录调试信息\n    log.Debug(\"On Tray UI startup, Resume Cryo mode\");\n    // 恢复冷冻模式\n    ResumeCryoMode();\n    // 检查当前操作模式是否为冷冻模式\n    if (currentOperationMode.Equals(OperationMode.Cryo))\n    {\n        // 如果是冷冻模式，则设置OnStartupResumeCryoSuccess为true，表示启动时恢复冷冻模式成功\n        OnStartupResumeCryoSuccess = true;\n    }\n}\nelse\n{\n    // 如果不需要记住冷冻设置，则直接设置OnStartupResumeCryoSuccess为true，表示启动时恢复冷冻模式成功\n    OnStartupResumeCryoSuccess = true;\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":116,"completion_tokens":173,"total_tokens":289}}
+	}
+
+	private void GetCurrentOperationMode()
+	{
+		{"id":"chatcmpl-66dde4166724ba48708c452c","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 尝试执行以下代码块\ntry\n{\n    // 定义一个HwUpdateStatus类型的变量success和一个string类型的变量message\n    HwUpdateStatus success;\n    string message;\n    \n    // 调用serviceHandle的GetOperationMode方法，并将返回值赋给operationMode、success和message\n    OperationMode operationMode = serviceHandle.GetOperationMode(out success, out message);\n    \n    // 判断success是否等于HwUpdateStatus.success\n    if (success.Equals(HwUpdateStatus.success))\n    {\n        // 如果当前的operationMode不等于方法返回的operationMode，则记录日志并更新UI模式\n        if (!operationMode.Equals(currentOperationMode))\n        {\n            log.Debug(\"Detected mode change from {0} to {1}.\", currentOperationMode, operationMode);\n            UpdateUIModes(operationMode);\n        }\n        // 否则，只记录当前的模式\n        else\n        {\n            log.Debug(\"Detected mode - {0}\", operationMode);\n        }\n    }\n    // 如果success不等于HwUpdateStatus.success，则记录模式、状态和详细信息\n    else\n    {\n        log.Debug(\"Detected mode - {0} : {1}. Details: {2}\", operationMode, success, message);\n    }\n}\n// 如果在try代码块中发生异常，则执行catch代码块\ncatch (Exception ex)\n{\n    // 更新UI模式为Pending\n    UpdateUIModes(OperationMode.Pending);\n    // 记录异常信息\n    log.Error(\"An exception occured in retreiving mode: {0}\", ex.Message.ToString());\n    // 回收serviceHandle资源\n    RecycleServiceHandle();\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":243,"completion_tokens":356,"total_tokens":599}}
+	}
+
+	private void GetFWVersion()
+	{
+		{"id":"chatcmpl-66dde4162d1834b861aea432","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 尝试执行以下代码块\ntry\n{\n    // 调用服务句柄的GetFWVersion方法来获取固件版本\n    // out参数success用于接收操作是否成功的布尔值\n    // out参数message用于接收操作结果的消息\n    fwVersion = serviceHandle.GetFWVersion(out var success, out var message);\n\n    // 如果操作成功\n    if (success.Equals(HwUpdateStatus.success))\n    {\n        // 使用日志记录器记录检测到的固件版本\n        log.Info(\"Detected firmware version : {0} \", fwVersion);\n\n        // 更新界面上的固件版本显示\n        ni.ContextMenu.MenuItems[\"About\"].MenuItems[\"FWVersion\"].Text = $\"FW Version : {fwVersion}\";\n\n        // 确保固件版本菜单项是可见的\n        fwVersionMenuItem.Visible = true;\n    }\n    // 如果操作失败\n    else\n    {\n        // 使用日志记录器记录固件版本检测失败的详细信息\n        log.Warn(\"Detected firmware version - {0} : {1}. Details: {2}\", fwVersion, success, message);\n    }\n}\n// 如果在尝试过程中发生异常\ncatch (Exception ex)\n{\n    // 使用日志记录器记录异常信息\n    log.Error(\"Unable to detect firmware version: {0}\", ex.Message.ToString());\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":206,"completion_tokens":292,"total_tokens":498}}
+	}
+
+	private void UpdateOcTvbMenuStatus()
+	{
+		{"id":"chatcmpl-66dde4160e249f576e7b98b2","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\ntry\n{\n    // 定义一个HwUpdateStatus类型的变量用于接收更新状态\n    HwUpdateStatus success;\n    // 定义一个string类型的变量用于接收错误消息\n    string message;\n    // 调用serviceHandle的GetSystemInfo方法获取系统信息，并输出更新状态和错误消息\n    string systemInfo = serviceHandle.GetSystemInfo(out success, out message);\n    // 检查更新状态是否成功，以及系统信息是否为空\n    if (!success.Equals(HwUpdateStatus.success) || string.IsNullOrEmpty(systemInfo))\n    {\n        // 如果更新状态不成功或系统信息为空，则记录错误日志\n        log.Error(\"Failed to get system info. status: \" + message);\n        // 退出方法\n        return;\n    }\n    // 检查系统信息是否支持OC TVB\n    string format = (SystemInfoHelper.CheckOcTvbStatus(systemInfo, ref microcodeVersion) ? \"OC TVB capable\" : \"OC TVB not available\");\n    // 设置菜单项的文本为检查结果\n    ni.ContextMenu.MenuItems[\"About\"].MenuItems[\"MCVersion\"].Text = string.Format(format);\n    // 使MCVersion菜单项可见\n    mcVersionMenuItem.Visible = true;\n}\ncatch (Exception ex)\n{\n    // 如果发生异常，则记录错误日志\n    log.Error(\"Failed to update OC TVB status\", ex.Message);\n}\n```\n以上代码添加了注释，解释了每个代码块的作用，同时没有省略或修改原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":214,"completion_tokens":327,"total_tokens":541}}
+	}
+
+	private void RecycleServiceHandle()
+	{
+		try
+		{
+			log.Debug("Begin recycling service handle.");
+			{"id":"chatcmpl-66dde416a34a0e0fe6848789","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 创建一个名为Stopwatch的变量，用来记录时间\n{"id":"chatcmpl-66dde4172d1834b861aea434","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 创建一个Stopwatch对象的实例\nStopwatch stopwatch = new Stopwatch();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":21,"total_tokens":69}}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":25,"total_tokens":73}}
+			{"id":"chatcmpl-66dde41631e3b72e6b502502","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 启动计时器\n{"id":"chatcmpl-66dde4175c029f50dfb40f7d","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 启动计时器\nstopwatch.Start();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":17,"total_tokens":62}}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":17,"total_tokens":62}}
+			if ((CheckServiceRunning() && serviceHandle == null) || (serviceHandle != null && serviceHandle.State == CommunicationState.Faulted))
+			{
+				serviceHandle = new CryoCoolingServiceClient(binding, endpointAdress);
+				OnStartupResumeCryoSuccess = false;
+			}
+			log.Debug("RecycleServiceHandle executed in {0}ms", stopwatch.ElapsedMilliseconds);
+			{"id":"chatcmpl-66dde41637d2ca1ac553e769","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 这行代码表示停止计时器，计时器对象名为 stopwatch\nstopwatch.Stop();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":28,"total_tokens":73}}
+		}
+		catch (Exception ex)
+		{
+			log.Error(GetEnumDescription(UIErrorCodes.ServiceConnectionFailed));
+			log.Error("RecycleServiceHandle : {ex}", ex.ToString());
+		}
+	}
+
+	private void ChangeOperationMode(object sender, EventArgs e)
+	{
+		{"id":"chatcmpl-66dde4176805ac86760c32ae","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```javascript\n// 将计时器禁用设置为真\nhasTimerDisabled = true;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":22,"total_tokens":69}}
+		{"id":"chatcmpl-66dde41737d2ca1ac553e76a","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个MenuItem类型的变量menuItem\n{"id":"chatcmpl-66dde41b6724ba48708c4536","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个MenuItem类型的变量menuItem，并将sender参数赋值给它\n{"id":"chatcmpl-66dde41b9509fe3cc8af8be0","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个MenuItem类型的变量menuItem\nMenuItem menuItem = (MenuItem)sender;\n```\n这段代码定义了一个名为`menuItem`的变量，它的类型是`MenuItem`。这个变量被初始化为`sender`参数的值，`sender`通常在事件处理程序中用来引用触发事件的对象。这里没有修改或省略原有的代码，只是添加了注释来解释代码的作用。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":85,"total_tokens":133}}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":29,"total_tokens":77}}\n// 将sender强制类型转换为MenuItem类型并赋值给menuItem变量\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":39,"total_tokens":87}}
+		try
+		{
+			log.Debug("User initiated mode change to {0}", menuItem.Text);
+			if (serviceHandle == null)
+			{
+				RecycleServiceHandle();
+			}
+			HwUpdateStatus success = HwUpdateStatus.unknown;
+			{"id":"chatcmpl-66dde417d399175d4553d25e","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个名为text的string变量，并将其初始化为空字符串\nstring text = string.Empty;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":27,"total_tokens":74}}
+			if (menuItem == standByMode)
+			{
+				text = UIMode.Standby.ToString();
+				success = serviceHandle.InitStandbyMode();
+			}
+			else if (menuItem == cryoMode)
+			{
+				text = UIMode.Cryo.ToString();
+				success = serviceHandle.InitCryoMode();
+			}
+			else if (menuItem == unRegulatedMode)
+			{
+				if (!ShowPopupMessage(GetEnumDescription(UIErrorCodes.WarnUnregulated), MessageBoxIcon.Exclamation, MessageBoxButtons.OKCancel))
+				{
+					return;
+				}
+				text = UIMode.Unregulated.ToString();
+				success = serviceHandle.InitUnregulatedMode();
+			}
+			{"id":"chatcmpl-66dde417efe3b3669c9b98a7","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 创建一个新的Notification对象实例\nNotification notification = new Notification();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":18,"total_tokens":65}}
+			notification.ShowBaloonTip = true;
+			if (success == HwUpdateStatus.success)
+			{
+				string message;
+				OperationMode operationMode = serviceHandle.GetOperationMode(out success, out message);
+				if (operationMode.Equals(OperationMode.Standby))
+				{
+					notification.TrayIconColor = TrayIconColor.BLUE;
+				}
+				else if (operationMode.Equals(OperationMode.Cryo))
+				{
+					notification.TrayIconColor = TrayIconColor.GREEN;
+				}
+				else if (operationMode.Equals(OperationMode.Unregulated))
+				{
+					notification.TrayIconColor = TrayIconColor.PURPLE;
+				}
+				string text2 = "Set mode to " + text;
+				if (success.Equals(HwUpdateStatus.success))
+				{
+					log.Debug("Mode change from {0} to {1} is successful.", currentOperationMode, operationMode);
+					UpdateUIModes(operationMode);
+					notification.Message = text2 + " : Success";
+					notification.ToolTipIcon = ToolTipIcon.Info;
+				}
+				else if (success.Equals(HwUpdateStatus.fail))
+				{
+					log.Warn("Mode change from {0} to {1} failed. Details : {2}", currentOperationMode, operationMode, message);
+					notification.Message = text2 + " : Failed";
+					notification.ToolTipIcon = ToolTipIcon.Error;
+					notification.TrayIconColor = TrayIconColor.RED;
+				}
+				if (success.Equals(HwUpdateStatus.success))
+				{
+					currentOperationMode = operationMode;
+				}
+			}
+			else
+			{
+				string message2;
+				OperationMode operationMode2 = serviceHandle.GetOperationMode(out success, out message2);
+				string text3 = "Set mode to " + text;
+				if (success.Equals(HwUpdateStatus.success))
+				{
+					currentOperationMode = operationMode2;
+				}
+				log.Debug("Mode change failed. Details : {0}", message2);
+				notification.Message = text3 + " : Failed";
+				notification.ToolTipIcon = ToolTipIcon.Info;
+				notification.TrayIconColor = previousIconColor;
+			}
+			{"id":"chatcmpl-66dde41843abc35c2c1ede6d","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 调用UpdateTrayNotificationItems方法，传入参数notification\n// 这个方法的作用是更新托盘通知项，可能用于在用户界面上显示或更新通知信息\nUpdateTrayNotificationItems(notification);\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":50,"total_tokens":98}}
+		}
+		catch (Exception ex)
+		{
+			log.Error("Mode change to {0} failed. Details: {1}", menuItem.Text, ex.Message);
+		}
+		finally
+		{
+			hasTimerDisabled = false;
+		}
+	}
+
+	public bool PollMessages()
+	{
+		{"id":"chatcmpl-66dde417091a6de4422c0270","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 记录调试信息，表示开始轮询消息\nlog.Debug(\"Begin polling messages.\");\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":49,"completion_tokens":26,"total_tokens":75}}
+		{"id":"chatcmpl-66dde416a34a0e0fe6848789","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 创建一个名为Stopwatch的变量，用来记录时间\n{"id":"chatcmpl-66dde4172d1834b861aea434","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 创建一个Stopwatch对象的实例\nStopwatch stopwatch = new Stopwatch();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":21,"total_tokens":69}}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":25,"total_tokens":73}}
+		{"id":"chatcmpl-66dde41631e3b72e6b502502","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 启动计时器\n{"id":"chatcmpl-66dde4175c029f50dfb40f7d","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 启动计时器\nstopwatch.Start();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":17,"total_tokens":62}}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":17,"total_tokens":62}}
+		{"id":"chatcmpl-66dde417efe3b3669c9b98a3","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```c\n// 定义一个布尔类型的变量result，并将其初始化为false\nbool result = false;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":46,"completion_tokens":24,"total_tokens":70}}
+		{"id":"chatcmpl-66dde417d399175d4553d25e","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个名为text的string变量，并将其初始化为空字符串\nstring text = string.Empty;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":27,"total_tokens":74}}
+		{"id":"chatcmpl-66dde417573308e7d13617c3","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 创建一个StringBuilder对象\nStringBuilder stringBuilder = new StringBuilder();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":17,"total_tokens":64}}
+		try
+		{
+			using NamedPipeClientStream namedPipeClientStream = new NamedPipeClientStream(".", QueryCommunicationPipe, PipeDirection.In);
+			namedPipeClientStream.Connect(TrayPipeWaitTimeInMS);
+			using (StreamReader streamReader = new StreamReader(namedPipeClientStream))
+			{
+				string value;
+				while ((value = streamReader.ReadLine()) != null)
+				{
+					stringBuilder.Append(value);
+				}
+			}
+			log.Debug("sbGetCurrentStatus: {}", stringBuilder.ToString());
+			StringBuilder stringBuilder2 = new StringBuilder();
+			StringBuilder stringBuilder3 = new StringBuilder();
+			string[] array = stringBuilder.ToString().Split(';');
+			if (array.Length != 0)
+			{
+				text = array[0];
+				for (int i = 1; i < array.Length; i++)
+				{
+					string[] array2 = array[i].Split(':');
+					if (array2.Length == 2)
+					{
+						if (array2[0].IndexOf("DewPoint") != -1)
+						{
+							stringBuilder2.Append($"Dew Point: {array2[1]}°C; ");
+						}
+						else if (array2[0].IndexOf("TecPower") != -1)
+						{
+							stringBuilder2.Append($"Power: {array2[1]}W; ");
+						}
+						else if (array2[0].IndexOf("TecTemp") != -1)
+						{
+							stringBuilder2.Append($"Cooler Temp: {array2[1]}°C; ");
+						}
+						else if (array2[0].IndexOf("Fan") != -1 || array2[0].IndexOf("Pump") != -1)
+						{
+							stringBuilder3.Append(array2[0] + ": " + array2[1] + "; ");
+						}
+					}
+				}
+			}
+			result = true;
+			string text2 = stringBuilder2.ToString();
+			string text3 = stringBuilder3.ToString();
+			log.Debug("Message details : {}, stats : {}, stats2: {}", text, text2, text3);
+			if (!string.IsNullOrEmpty(text))
+			{
+				bool flag = previousMessage != text;
+				ProcessTheReceivedMessageFromTheService(text, flag);
+				previousMessage = (flag ? text : previousMessage);
+			}
+			previousPollErrorMessage = string.Empty;
+			UpdateTrayStats(text2, text3, showStats: true);
+		}
+		catch (Exception ex)
+		{
+			bool flag2 = false;
+			bool flag3 = CheckServiceRunning();
+			string empty = string.Empty;
+			string message = ex.Message;
+			log.Error("Poll Messages: {0}", message);
+			UpdateTrayStats("Stats unknown");
+			UpdateUIModes(OperationMode.Pending);
+			DisableUIModes(hasDisabled: true);
+			if (!flag3)
+			{
+				log.Warn("Cryo Cooling Technology Service is not running.");
+				empty = GetEnumDescription(UIErrorCodes.ServiceStopped);
+				OnStartupResumeCryoSuccess = false;
+			}
+			else if (flag3 && message.ToLower().Contains("the operation has timed out"))
+			{
+				flag2 = true;
+				empty = GetEnumDescription(UIErrorCodes.NoCooler);
+			}
+			else
+			{
+				empty = GetEnumDescription(UIErrorCodes.NoCooler);
+			}
+			UpdateTrayNotificationItems(new Notification
+			{
+				Message = empty,
+				TrayIconColor = TrayIconColor.RED,
+				ToolTipIcon = ToolTipIcon.Error,
+				ShowBaloonTip = false
+			});
+			if (!flag2 && !previousMessage.Equals(empty) && !previousPollErrorMessage.Equals(message) && !hasTimerDisabled)
+			{
+				ShowPopupMessage2(empty, MessageBoxIcon.Hand);
+				previousPollErrorMessage = message;
+			}
+			previousMessage = empty;
+		}
+		finally
+		{
+			log.Debug("Pollmessages executed in {0}ms", stopwatch.ElapsedMilliseconds);
+			{"id":"chatcmpl-66dde41637d2ca1ac553e769","object":"chat.completion","created":1725817878,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 这行代码表示停止计时器，计时器对象名为 stopwatch\nstopwatch.Stop();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":28,"total_tokens":73}}
+		}
+		{"id":"chatcmpl-66dde417bbe27f3b743a6c26","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"当然可以，下面是添加了注释的代码：\n\n```java\n// 定义一个方法，返回一个结果\npublic void someMethod() {\n    // 执行一些操作\n    // ...\n\n    // 返回结果\n    return result;\n    // 注释：这行代码表示将变量result的值返回给调用者\n}\n```\n\n在这个示例中，`return result;` 表示将变量 `result` 的值返回给调用者。我添加了一些注释来解释代码的功能，但保留了原有的代码不变。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":109,"total_tokens":153}}
+	}
+
+	private void ProcessTheReceivedMessageFromTheService(string message, bool notify)
+	{
+		{"id":"chatcmpl-66dde4176805ac86760c32af","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个字符串数组变量 array\nstring[] array = message.Split(':'); // 使用冒号 ':' 作为分隔符，将 message 字符串分割成数组\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":49,"completion_tokens":41,"total_tokens":90}}
+		{"id":"chatcmpl-66dde417efe3b3669c9b98a4","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将数组的第一个元素转换为小写，并去除前后的空白字符，然后赋值给字符串变量text\nstring text = array[0].ToLower().Trim();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":52,"completion_tokens":42,"total_tokens":94}}
+		{"id":"chatcmpl-66dde4179be6dd0c0ecc6f82","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个字符串变量 message2\nstring message2;\n\n// 将数组 array 的第二个元素（索引为 1）去除前后空白后赋值给 message2 变量\nmessage2 = array[1].Trim();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":51,"completion_tokens":54,"total_tokens":105}}
+		{"id":"chatcmpl-66dde417efe3b3669c9b98a7","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 创建一个新的Notification对象实例\nNotification notification = new Notification();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":18,"total_tokens":65}}
+		{"id":"chatcmpl-66dde41743abc35c2c1ede6c","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 将变量message2的值赋给对象notification的Message属性\nnotification.Message = message2;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":27,"total_tokens":74}}
+		if (message.Contains(":") && text == "error")
+		{
+			notification.ShowBaloonTip = false;
+			notification.ToolTipIcon = ToolTipIcon.Error;
+			notification.TrayIconColor = TrayIconColor.RED;
+			string text2 = message;
+			string text3 = message.ToLower();
+			if (text3.Contains("failed to get board status registers") || text3.Contains("failed to initialize controller"))
+			{
+				UpdateTrayStats("Stats unknown");
+				UpdateUIModes(OperationMode.Pending);
+				text2 = GetEnumDescription(UIErrorCodes.NoCooler);
+			}
+			else if (text3.Contains("invalidprocessor"))
+			{
+				UpdateTrayStats("Stats unknown");
+				UpdateUIModes(OperationMode.Pending);
+				text2 = GetEnumDescription(UIErrorCodes.InvalidCPU);
+				{"id":"chatcmpl-66dde4176805ac86760c32ae","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```javascript\n// 将计时器禁用设置为真\nhasTimerDisabled = true;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":22,"total_tokens":69}}
+			}
+			else if (text3.Contains("invalidfw"))
+			{
+				UpdateTrayStats("Stats unknown");
+				UpdateUIModes(OperationMode.Pending);
+				text2 = GetEnumDescription(UIErrorCodes.InvalidFW);
+			}
+			else
+			{
+				text2 = message.Substring(message.IndexOf(':') + 1);
+			}
+			DisableUIModes(hasDisabled: true);
+			notification.Message = text2;
+			log.Debug("Popup should show with : {0}", text2);
+			if (!message.Equals(previousMessage))
+			{
+				ShowPopupMessage2(text2, MessageBoxIcon.Hand);
+			}
+			previousMessage = message;
+		}
+		else if (message.Contains(":") && text == "success")
+		{
+			notification.ShowBaloonTip = notify;
+			notification.ToolTipIcon = ToolTipIcon.Info;
+			notification.ShowBaloonTip = false;
+			switch (currentOperationMode)
+			{
+			case OperationMode.Unregulated:
+				notification.TrayIconColor = TrayIconColor.PURPLE;
+				break;
+			case OperationMode.Standby:
+				notification.TrayIconColor = TrayIconColor.BLUE;
+				break;
+			default:
+				notification.TrayIconColor = TrayIconColor.GREEN;
+				break;
+			}
+			DisableUIModes(hasDisabled: false);
+		}
+		else if (message.Contains(":") && text == "warn")
+		{
+			notification.ShowBaloonTip = notify;
+			notification.ToolTipIcon = ToolTipIcon.Warning;
+			notification.TrayIconColor = TrayIconColor.BLUE;
+			DisableUIModes(hasDisabled: false);
+		}
+		else
+		{
+			notification.Message = message;
+		}
+		{"id":"chatcmpl-66dde41843abc35c2c1ede6d","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 调用UpdateTrayNotificationItems方法，传入参数notification\n// 这个方法的作用是更新托盘通知项，可能用于在用户界面上显示或更新通知信息\nUpdateTrayNotificationItems(notification);\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":50,"total_tokens":98}}
+	}
+
+	private void DisableUIModes(bool hasDisabled)
+	{
+		{"id":"chatcmpl-66dde4189509fe3cc8af8bd8","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查diagnosticform对象是否不为null，并且其istestInProgress属性是否为true\nif (diagnosticform != null \u0026\u0026 diagnosticform.istestInProgress)\n{\n    // 如果测试正在进行，则禁用selectMode控件\n    selectMode.Enabled = false;\n}\nelse\n{\n    // 如果测试不正在进行，则根据hasDisabled变量的值来启用或禁用selectMode控件\n    selectMode.Enabled = !hasDisabled;\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":83,"completion_tokens":98,"total_tokens":181}}
+	}
+
+	private void UpdateUIModes(OperationMode mode)
+	{
+		{"id":"chatcmpl-66dde418573308e7d13617c4","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将名为manualMode的控件的可见性设置为不可见\nmanualMode.Visible = false;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":29,"total_tokens":76}}
+		{"id":"chatcmpl-66dde4187e7e72ca96d83d99","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将standByMode的Checked属性设置为false\nstandByMode.Checked = false;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":26,"total_tokens":74}}
+		{"id":"chatcmpl-66dde41837d2ca1ac553e76c","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将cryoMode控件的Checked属性设置为false，表示取消选中状态\ncryoMode.Checked = false;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":33,"total_tokens":81}}
+		{"id":"chatcmpl-66dde41837d2ca1ac553e76d","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将unRegulatedMode控件的Checked属性设置为false，表示取消选中状态\nunRegulatedMode.Checked = false;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":49,"completion_tokens":35,"total_tokens":84}}
+		{"id":"chatcmpl-66dde41894c4e917af381e10","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将manualMode控件的Checked属性设置为false，表示取消选中状态\nmanualMode.Checked = false;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":31,"total_tokens":78}}
+		{"id":"chatcmpl-66dde418f9e61e3ab39747c4","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 启用待机模式\nstandByMode.Enabled = true;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":18,"total_tokens":66}}
+		{"id":"chatcmpl-66dde4186724ba48708c452f","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 启用低温模式\ncryoMode.Enabled = true;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":19,"total_tokens":67}}
+		{"id":"chatcmpl-66dde41843ed801dd2a0e169","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将未受监管模式设置为启用状态\nunRegulatedMode.Enabled = true;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":49,"completion_tokens":26,"total_tokens":75}}
+		{"id":"chatcmpl-66dde4180876b09e0a2a4eae","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将手动模式启用\nmanualMode.Enabled = true;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":19,"total_tokens":66}}
+		{"id":"chatcmpl-66dde4186de73473f2d06966","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查操作模式是否为待机模式\nif (mode.Equals(OperationMode.Standby))\n{\n    // 如果是待机模式，则设置待机模式的复选框为选中状态\n    standByMode.Checked = true;\n    // 禁用待机模式的复选框，使其不能被用户更改\n    standByMode.Enabled = false;\n    // 保存用户对冷冻选择的设置，状态设为false\n    SaveUserCryoSelection(status: false);\n}\n// 检查操作模式是否为冷冻模式\nelse if (mode.Equals(OperationMode.Cryo))\n{\n    // 如果是冷冻模式，则设置冷冻模式的复选框为选中状态\n    cryoMode.Checked = true;\n    // 禁用冷冻模式的复选框，使其不能被用户更改\n    cryoMode.Enabled = false;\n    // 检查是否选中了记住冷冻模式的菜单项\n    if (swRememberCryoMenuItem.Checked)\n    {\n        // 如果选中了，则保存用户对冷冻选择的设置，状态设为true\n        SaveUserCryoSelection(status: true);\n    }\n    else\n    {\n        // 如果没有选中，则保存用户对冷冻选择的设置，状态设为false\n        SaveUserCryoSelection(status: false);\n    }\n}\n// 检查操作模式是否为非调节模式\nelse if (mode.Equals(OperationMode.Unregulated))\n{\n    // 如果是非调节模式，则设置非调节模式的复选框为选中状态\n    unRegulatedMode.Checked = true;\n    // 禁用非调节模式的复选框，使其不能被用户更改\n    unRegulatedMode.Enabled = false;\n    // 保存用户对冷冻选择的设置，状态设为false\n    SaveUserCryoSelection(status: false);\n}\n// 检查操作模式是否为手动模式\nelse if (mode.Equals(OperationMode.Manual))\n{\n    // 如果是手动模式，则设置手动模式的复选框为选中状态\n    manualMode.Checked = true;\n    // 使手动模式的复选框可见\n    manualMode.Visible = true;\n    // 禁用手动模式的复选框，使其不能被用户更改\n    manualMode.Enabled = false;\n    // 保存用户对冷冻选择的设置，状态设为false\n    SaveUserCryoSelection(status: false);\n}\n```\n以上代码中，我为每个代码块添加了注释，解释了每段代码的功能和目的，但未对原有代码进行任何省略或修改。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":242,"completion_tokens":525,"total_tokens":767}}
+		{"id":"chatcmpl-66dde418c81df0fa8f0bba4b","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```c\n// 将当前操作模式设置为指定的模式\ncurrentOperationMode = mode;\n```\n这段代码中的注释说明了变量 `currentOperationMode` 被赋值为 `mode`，表示程序的操作模式正在被设置。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":51,"total_tokens":98}}
+	}
+
+	private void UpdateTrayNotificationItems(Notification notification)
+	{
+		{"id":"chatcmpl-66dde4189509fe3cc8af8bdc","object":"chat.completion","created":1725817880,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 调用UpdateTrayStatus方法，传递notification.Message作为参数\nUpdateTrayStatus(notification.Message);\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":28,"total_tokens":76}}
+		{"id":"chatcmpl-66dde4185bc3fd69111da05a","object":"chat.completion","created":1725817881,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 调用UpdateTrayIcon方法，传入一个参数notification.TrayIconColor\n// 这个方法的作用是更新托盘图标的颜色\nUpdateTrayIcon(notification.TrayIconColor);\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":51,"completion_tokens":45,"total_tokens":96}}
+		{"id":"chatcmpl-66dde419573308e7d13617c6","object":"chat.completion","created":1725817881,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查notification对象的ShowBaloonTip属性是否为true\nif (notification.ShowBaloonTip)\n{\n    // 如果为true，则调用SendMessagetoNotificationCenter方法\n    // 该方法用于向通知中心发送消息\n    // 传递两个参数：notification.Message和notification.ToolTipIcon\n    SendMessagetoNotificationCenter(notification.Message, notification.ToolTipIcon);\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":65,"completion_tokens":82,"total_tokens":147}}
+	}
+
+	private void UpdateTrayIcon(TrayIconColor color)
+	{
+		log.Debug("Icon color : {0}", color.ToString());
+		{"id":"chatcmpl-66dde4196724ba48708c4532","object":"chat.completion","created":1725817881,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查当前图标颜色是否与传入的颜色相同\nif (!previousIconColor.Equals(color))\n{\n    // 如果不相同，则更新颜色\n    previousIconColor = color;\n\n    // 根据传入的颜色，设置系统托盘图标\n    switch (color)\n    {\n        case TrayIconColor.RED:\n            // 如果颜色是红色，设置对应的红色图标\n            ni.Icon = new Icon(ICON_RED, ICON_RED.Size);\n            break;\n        case TrayIconColor.BLUE:\n            // 如果颜色是蓝色，设置对应的蓝色图标\n            ni.Icon = new Icon(ICON_BLUE, ICON_BLUE.Size);\n            break;\n        case TrayIconColor.GREEN:\n            // 如果颜色是绿色，设置对应的绿色图标\n            ni.Icon = new Icon(ICON_GREEN, ICON_GREEN.Size);\n            break;\n        case TrayIconColor.PURPLE:\n            // 如果颜色是紫色，设置对应的紫色图标\n            ni.Icon = new Icon(ICON_PURPLE, ICON_PURPLE.Size);\n            break;\n        case TrayIconColor.YELLOW:\n            // 如果颜色是黄色，设置对应的黄色图标\n            ni.Icon = new Icon(ICON_YELLOW, ICON_YELLOW.Size);\n            break;\n        default:\n            // 如果颜色不是以上任何一种，设置默认的红色图标\n            ni.Icon = new Icon(ICON_RED, ICON_RED.Size);\n            break;\n    }\n}\n```\n\n以上代码添加了注释，解释了每个代码块的功能，但未省略或修改原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":214,"completion_tokens":308,"total_tokens":522}}
+	}
+
+	private void UpdateTrayStats(string stats, string stats2 = "", bool showStats = false)
+	{
+		if (showStats)
+		{
+			if (!string.IsNullOrEmpty(stats))
+			{
+				statsMessage.Visible = true;
+				ni.ContextMenu.MenuItems["Stats"].Text = stats;
+			}
+			else
+			{
+				statsMessage.Visible = false;
+				ni.ContextMenu.MenuItems["Stats"].Text = "";
+			}
+			if (!string.IsNullOrEmpty(stats2))
+			{
+				statsMessage2.Visible = true;
+				ni.ContextMenu.MenuItems["Stats2"].Text = stats2;
+			}
+			else
+			{
+				statsMessage2.Visible = false;
+				ni.ContextMenu.MenuItems["Stats2"].Text = "";
+			}
+		}
+		else
+		{
+			statsMessage.Visible = false;
+			statsMessage2.Visible = false;
+		}
+	}
+
+	private void UpdateTrayStatus(string desiredText)
+	{
+		if (!string.IsNullOrEmpty(desiredText))
+		{
+			ni.ContextMenu.MenuItems["Status"].Text = desiredText;
+			SetTrayMouseOverText(desiredText);
+		}
+	}
+
+	private void SetTrayMouseOverText(string desiredText)
+	{
+		if (desiredText.Length > 63)
+		{
+			ni.Text = "Check the Notification Title for more details.";
+			ni.ContextMenu.MenuItems["Status"].Text = desiredText;
+		}
+		else
+		{
+			ni.Text = desiredText;
+		}
+	}
+
+	private void SendMessagetoNotificationCenter(string desiredText, ToolTipIcon icon)
+	{
+		log.Debug("Sending {0} notification to UI : {1}", icon.ToString(), desiredText);
+		switch (icon)
+		{
+		case ToolTipIcon.Info:
+			ni.BalloonTipIcon = ToolTipIcon.Info;
+			break;
+		case ToolTipIcon.Error:
+			ni.BalloonTipIcon = ToolTipIcon.Error;
+			break;
+		case ToolTipIcon.Warning:
+			ni.BalloonTipIcon = ToolTipIcon.Warning;
+			break;
+		default:
+			ni.BalloonTipIcon = ToolTipIcon.Error;
+			break;
+		}
+		ni.BalloonTipTitle = "Intel® Cryo Cooling Technology";
+		ni.BalloonTipText = desiredText;
+		ni.ShowBalloonTip(BaloonTipTimeOutInMS);
+	}
+
+	private bool ShowPopupMessage(string message, MessageBoxIcon icon, MessageBoxButtons buttons)
+	{
+		{"id":"chatcmpl-66dde41af81e1f9c7f4aba0b","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个日志记录器，用于记录调试信息\nlog.Debug(\"Sending {0} popup to UI : {1}\", icon.ToString(), message);\n```\n这段代码是C#语言中的一行代码，它使用日志记录器（log）来记录一个调试信息。代码中的`Debug`方法用于输出调试级别的日志，这通常用于开发过程中，以便开发者能够追踪程序的执行情况。代码中的字符串格式化使用了占位符`{0}`和`{1}`，它们分别会被`icon.ToString()`和`message`变量的值所替换。这样，当这条日志被记录时，它会包含图标的字符串表示和消息内容。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":61,"completion_tokens":145,"total_tokens":206}}
+		if (MessageBox.Show(message, "Intel® Cryo Cooling Technology", buttons, icon, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly) == DialogResult.OK)
+		{
+			log.Debug("User clicked OK to popup message : {0}", message);
+			Close();
+			{"id":"chatcmpl-66dde41a9509fe3cc8af8bde","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"当然，下面是对 `{"id":"chatcmpl-66dde41ae33e1cc1b30c1f51","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 以下代码是一个简单的Java语句，用于返回一个布尔值true\nreturn true;\n```\n这段代码中的注释是对代码的简单解释，没有修改或省略原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":42,"total_tokens":86}}` 这行代码的注释：\n\n```java\n// 这行代码表示函数将返回一个布尔值 true\n{"id":"chatcmpl-66dde41ae33e1cc1b30c1f51","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 以下代码是一个简单的Java语句，用于返回一个布尔值true\nreturn true;\n```\n这段代码中的注释是对代码的简单解释，没有修改或省略原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":42,"total_tokens":86}}\n```\n\n这样，代码的功能没有改变，只是增加了解释性的注释。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":52,"total_tokens":96}}
+		}
+		log.Debug("User clicked cancel popup message : {0}", message);
+		return false;
+	}
+
+	private bool ShowPopupMessage(string message, MessageBoxIcon icon)
+	{
+		{"id":"chatcmpl-66dde41af81e1f9c7f4aba0b","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个日志记录器，用于记录调试信息\nlog.Debug(\"Sending {0} popup to UI : {1}\", icon.ToString(), message);\n```\n这段代码是C#语言中的一行代码，它使用日志记录器（log）来记录一个调试信息。代码中的`Debug`方法用于输出调试级别的日志，这通常用于开发过程中，以便开发者能够追踪程序的执行情况。代码中的字符串格式化使用了占位符`{0}`和`{1}`，它们分别会被`icon.ToString()`和`message`变量的值所替换。这样，当这条日志被记录时，它会包含图标的字符串表示和消息内容。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":61,"completion_tokens":145,"total_tokens":206}}
+		MessageBoxButtons buttons = MessageBoxButtons.OK;
+		if (MessageBox.Show(message, "Intel® Cryo Cooling Technology", buttons, icon, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly) == DialogResult.OK)
+		{
+			log.Debug("User clicked OK to popup message : {0}", message);
+			Close();
+			{"id":"chatcmpl-66dde41a9509fe3cc8af8bde","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"当然，下面是对 `{"id":"chatcmpl-66dde41ae33e1cc1b30c1f51","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 以下代码是一个简单的Java语句，用于返回一个布尔值true\nreturn true;\n```\n这段代码中的注释是对代码的简单解释，没有修改或省略原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":42,"total_tokens":86}}` 这行代码的注释：\n\n```java\n// 这行代码表示函数将返回一个布尔值 true\n{"id":"chatcmpl-66dde41ae33e1cc1b30c1f51","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 以下代码是一个简单的Java语句，用于返回一个布尔值true\nreturn true;\n```\n这段代码中的注释是对代码的简单解释，没有修改或省略原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":42,"total_tokens":86}}\n```\n\n这样，代码的功能没有改变，只是增加了解释性的注释。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":52,"total_tokens":96}}
+		}
+		return false;
+	}
+
+	private bool ShowPopupMessage2(string message, MessageBoxIcon icon, MessageBoxButtons buttons)
+	{
+		{"id":"chatcmpl-66dde41af81e1f9c7f4aba0b","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个日志记录器，用于记录调试信息\nlog.Debug(\"Sending {0} popup to UI : {1}\", icon.ToString(), message);\n```\n这段代码是C#语言中的一行代码，它使用日志记录器（log）来记录一个调试信息。代码中的`Debug`方法用于输出调试级别的日志，这通常用于开发过程中，以便开发者能够追踪程序的执行情况。代码中的字符串格式化使用了占位符`{0}`和`{1}`，它们分别会被`icon.ToString()`和`message`变量的值所替换。这样，当这条日志被记录时，它会包含图标的字符串表示和消息内容。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":61,"completion_tokens":145,"total_tokens":206}}
+		{"id":"chatcmpl-66dde41aa0b445598af8b0a9","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 显示一个自定义的消息框\nShowMyCustomMessageBoxAsync(\n    // 消息内容\n    message, \n    // 消息框标题\n    \"Intel® Cryo Cooling Technology\", \n    // 按钮选项\n    buttons, \n    // 图标\n    icon\n);\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":61,"completion_tokens":67,"total_tokens":128}}
+		{"id":"chatcmpl-66dde41a9509fe3cc8af8bde","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"当然，下面是对 `{"id":"chatcmpl-66dde41ae33e1cc1b30c1f51","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 以下代码是一个简单的Java语句，用于返回一个布尔值true\nreturn true;\n```\n这段代码中的注释是对代码的简单解释，没有修改或省略原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":42,"total_tokens":86}}` 这行代码的注释：\n\n```java\n// 这行代码表示函数将返回一个布尔值 true\n{"id":"chatcmpl-66dde41ae33e1cc1b30c1f51","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 以下代码是一个简单的Java语句，用于返回一个布尔值true\nreturn true;\n```\n这段代码中的注释是对代码的简单解释，没有修改或省略原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":42,"total_tokens":86}}\n```\n\n这样，代码的功能没有改变，只是增加了解释性的注释。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":52,"total_tokens":96}}
+	}
+
+	private bool ShowPopupMessage2(string message, MessageBoxIcon icon)
+	{
+		{"id":"chatcmpl-66dde41af81e1f9c7f4aba0b","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个日志记录器，用于记录调试信息\nlog.Debug(\"Sending {0} popup to UI : {1}\", icon.ToString(), message);\n```\n这段代码是C#语言中的一行代码，它使用日志记录器（log）来记录一个调试信息。代码中的`Debug`方法用于输出调试级别的日志，这通常用于开发过程中，以便开发者能够追踪程序的执行情况。代码中的字符串格式化使用了占位符`{0}`和`{1}`，它们分别会被`icon.ToString()`和`message`变量的值所替换。这样，当这条日志被记录时，它会包含图标的字符串表示和消息内容。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":61,"completion_tokens":145,"total_tokens":206}}
+		{"id":"chatcmpl-66dde41ab46ba2d00bc5c7aa","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 显示一个自定义的消息框\nShowMyCustomMessageBoxAsync(\n    // 消息内容\n    message,\n    // 标题\n    \"Intel® Cryo Cooling Technology\",\n    // 按钮类型，这里表示只显示一个确定按钮\n    MessageBoxButtons.OK,\n    // 图标类型，这里没有指定，所以会使用默认图标\n    icon\n);\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":62,"completion_tokens":81,"total_tokens":143}}
+		{"id":"chatcmpl-66dde41a9509fe3cc8af8bde","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"当然，下面是对 `{"id":"chatcmpl-66dde41ae33e1cc1b30c1f51","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 以下代码是一个简单的Java语句，用于返回一个布尔值true\nreturn true;\n```\n这段代码中的注释是对代码的简单解释，没有修改或省略原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":42,"total_tokens":86}}` 这行代码的注释：\n\n```java\n// 这行代码表示函数将返回一个布尔值 true\n{"id":"chatcmpl-66dde41ae33e1cc1b30c1f51","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 以下代码是一个简单的Java语句，用于返回一个布尔值true\nreturn true;\n```\n这段代码中的注释是对代码的简单解释，没有修改或省略原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":42,"total_tokens":86}}\n```\n\n这样，代码的功能没有改变，只是增加了解释性的注释。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":44,"completion_tokens":52,"total_tokens":96}}
+	}
+
+	private void IconMouseUp(object sender, MouseEventArgs e)
+	{
+		{"id":"chatcmpl-66dde41a2f2dbaf3956bdccd","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查鼠标点击的是否是左键\nif (e.Button != MouseButtons.Left)\n{\n    // 如果不是左键，则不执行任何操作并退出方法\n    return;\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":57,"completion_tokens":46,"total_tokens":103}}
+		{"id":"chatcmpl-66dde41ae33e1cc1b30c1f52","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 这一行代码是C#语言中的一个调试日志输出语句\nlog.Debug(\"IconMouseUp called\");\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":50,"completion_tokens":31,"total_tokens":81}}
+		{"id":"chatcmpl-66dde41a37d2ca1ac553e773","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 尝试执行以下代码块\ntry\n{\n    // 记录调试信息，表示正在寻找名为 \"ShowContextMenu\" 的方法\n    log.Debug(\"Look for method (ShowContextMenu)\");\n\n    // 通过反射获取 NotifyIcon 类型的 \"ShowContextMenu\" 方法，该方法是实例方法且非公开\n    MethodInfo method = typeof(NotifyIcon).GetMethod(\"ShowContextMenu\", BindingFlags.Instance | BindingFlags.NonPublic);\n\n    // 如果找到了方法\n    if (method != null)\n    {\n        // 记录该方法所属的类的全名\n        log.Debug(method.DeclaringType.FullName);\n\n        // 调用该方法，传入 NotifyIcon 实例 ni 和 null 作为参数\n        method.Invoke(ni, null);\n    }\n    else\n    {\n        // 如果没有找到方法，则记录调试信息表示方法未找到\n        log.Debug(\"Method not found!\");\n    }\n}\n// 如果在尝试执行代码块的过程中发生异常\ncatch (Exception value)\n{\n    // 记录错误信息，包括异常的详细信息\n    log.Error(value);\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":144,"completion_tokens":231,"total_tokens":375}}
+	}
+
+	private void OpenFAQ(object sender, EventArgs e)
+	{
+		{"id":"chatcmpl-66dde41a573308e7d13617c9","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 定义一个名为 msg 的字符串变量，并将其初始化为空字符串\nstring msg = \"\";\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":24,"total_tokens":69}}
+		{"id":"chatcmpl-66dde41a5c029f50dfb40f84","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查FAQ模块是否成功启动\nif (!faq.Launch(fwVersion, ref msg))\n{\n    // 如果启动失败，则显示一个弹出消息框\n    ShowPopupMessage(msg, MessageBoxIcon.Exclamation, MessageBoxButtons.OKCancel);\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":72,"completion_tokens":56,"total_tokens":128}}
+	}
+
+	private void RunDiagnosticTest(object sender, EventArgs e)
+	{
+		{"id":"chatcmpl-66dde41ac81df0fa8f0bba50","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查diagnosticform对象是否不为null\nif (diagnosticform != null)\n{\n    // 如果diagnosticform不为null，则将其置于最前端\n    diagnosticform.BringToFront();\n    // 执行完BringToFront()方法后，结束当前方法的执行\n    return;\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":64,"completion_tokens":68,"total_tokens":132}}
+		{"id":"chatcmpl-66dde41a6724ba48708c4535","object":"chat.completion","created":1725817882,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 创建一个新的诊断测试对象\n// 'DiagnosticTest' 是一个类，用于执行诊断测试\n// 'serviceHandle' 是一个服务句柄，用于与服务进行交互\n// 'new' 关键字用于创建对象实例\n// 'DiagnosticTest(serviceHandle)' 是调用 'DiagnosticTest' 类的构造函数，并传入 'serviceHandle' 作为参数\ndiagnosticform = new DiagnosticTest(serviceHandle);\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":51,"completion_tokens":94,"total_tokens":145}}
+		{"id":"chatcmpl-66dde41a94c4e917af381e1c","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 显示诊断表单\ndiagnosticform.Show();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":46,"completion_tokens":18,"total_tokens":64}}
+	}
+
+	private void Exit(object sender, EventArgs e)
+	{
+		{"id":"chatcmpl-66dde41b9be6dd0c0ecc6f89","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\ntry\n{\n    // 显示一个弹出消息框，询问用户是否确定退出\n    if (!ShowPopupMessage(GetEnumDescription(UIErrorCodes.WarnExit), MessageBoxIcon.Exclamation, MessageBoxButtons.OKCancel))\n    {\n        // 如果用户选择取消，则不执行退出操作\n        return;\n    }\n    // 检查服务句柄是否不为null，并且服务状态为已打开\n    if (serviceHandle != null \u0026\u0026 serviceHandle.State.Equals(CommunicationState.Opened))\n    {\n        // 初始化待机模式\n        HwUpdateStatus hwUpdateStatus = serviceHandle.InitStandbyMode();\n        string text = UIMode.Standby.ToString();\n        // 如果初始化待机模式成功\n        if (hwUpdateStatus.Equals(HwUpdateStatus.success))\n        {\n            // 记录日志，显示模式从当前操作模式变更为待机模式成功\n            log.Debug(\"Mode change from {0} to {1} is Successful.\", currentOperationMode, text);\n        }\n        // 如果初始化待机模式失败\n        else if (hwUpdateStatus.Equals(HwUpdateStatus.fail))\n        {\n            // 记录日志，显示模式变更为待机模式失败\n            log.Warn(\"Mode change to {0} is Failed.\", text);\n        }\n        // 等待100毫秒\n        Thread.Sleep(100);\n        // 关闭服务句柄\n        serviceHandle.Close();\n    }\n    // 释放托盘定时器资源\n    RefreshTrayTimer.Dispose();\n    // 检查托盘图标是否不为null\n    if (ni != null)\n    {\n        // 设置托盘图标不可见\n        ni.Visible = false;\n        // 如果托盘图标有图标，则释放图标资源\n        if (ni.Icon != null)\n        {\n            ni.Icon = null;\n        }\n        // 释放托盘图标资源\n        ni.Dispose();\n        // 将托盘图标设置为null\n        ni = null;\n    }\n    // 记录日志，显示程序退出托盘\n    log.Debug(\"Exiting the tray. Bye.\");\n    // 退出当前线程\n    Application.ExitThread();\n    // 退出应用程序\n    Environment.Exit(0);\n}\n// 捕获并记录任何异常\ncatch (Exception ex)\n{\n    log.Error(\"Exception in EXIT : {0}\", ex.Message);\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":318,"completion_tokens":483,"total_tokens":801}}
+	}
+
+	private bool CheckIfUpdatesEnabled()
+	{
+		{"id":"chatcmpl-66dde41b350932951471a19f","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 尝试以可写方式打开当前用户注册表中的特定子键\nusing (RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(\"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\Updates\", writable: true))\n{\n    // 如果子键不存在，则创建它\n    if (registryKey == null)\n    {\n        // 使用using语句创建子键，确保资源被正确释放\n        using RegistryKey registryKey2 = Registry.CurrentUser.CreateSubKey(\"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\Updates\");\n        // 为新创建的子键设置一个值，指示应检查更新\n        registryKey2.SetValue(\"CheckForUpdates\", \"True\");\n        // 将菜单项的选中状态设置为true\n        swUpdatesMenuItem.Checked = true;\n    }\n    // 如果子键存在但其中没有\"CheckForUpdates\"的值\n    else if (registryKey.GetValue(\"CheckForUpdates\") == null)\n    {\n        // 将菜单项的选中状态设置为true\n        swUpdatesMenuItem.Checked = true;\n    }\n    // 如果子键存在且包含\"CheckForUpdates\"的值\n    else\n    {\n        // 将菜单项的选中状态设置为注册表中\"CheckForUpdates\"值的布尔表示\n        swUpdatesMenuItem.Checked = Convert.ToBoolean(registryKey.GetValue(\"CheckForUpdates\"));\n    }\n}\n```\n\n以上代码块中，我为每一行代码添加了注释，解释了代码的功能和目的，但没有省略或修改任何原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":196,"completion_tokens":332,"total_tokens":528}}
+		{"id":"chatcmpl-66dde41bb2bc02790419cbb4","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个日志记录器，用于记录调试信息\nlog.Debug(\"Software updates enabled : {0}\", swUpdatesMenuItem.Checked);\n```\n这段代码中，`log.Debug` 是一个日志记录器的方法，用于输出调试信息。`\"Software updates enabled : {0}\"` 是一个字符串模板，其中 `{0}` 是一个占位符，用于插入变量值。`swUpdatesMenuItem.Checked` 是一个布尔值，表示某个菜单项是否被选中。这段代码的作用是输出一个调试信息，说明软件更新是否被启用。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":57,"completion_tokens":122,"total_tokens":179}}
+		{"id":"chatcmpl-66dde41b0876b09e0a2a4eb2","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查 swUpdatesMenuItem 菜单项是否被选中，并返回其选中状态\nreturn swUpdatesMenuItem.Checked;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":30,"total_tokens":77}}
+	}
+
+	private void ToggleUISoftwareUpdates(object sender, EventArgs e)
+	{
+		{"id":"chatcmpl-66dde41737d2ca1ac553e76a","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个MenuItem类型的变量menuItem\n{"id":"chatcmpl-66dde41b6724ba48708c4536","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个MenuItem类型的变量menuItem，并将sender参数赋值给它\n{"id":"chatcmpl-66dde41b9509fe3cc8af8be0","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个MenuItem类型的变量menuItem\nMenuItem menuItem = (MenuItem)sender;\n```\n这段代码定义了一个名为`menuItem`的变量，它的类型是`MenuItem`。这个变量被初始化为`sender`参数的值，`sender`通常在事件处理程序中用来引用触发事件的对象。这里没有修改或省略原有的代码，只是添加了注释来解释代码的作用。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":85,"total_tokens":133}}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":29,"total_tokens":77}}\n// 将sender强制类型转换为MenuItem类型并赋值给menuItem变量\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":39,"total_tokens":87}}
+		{"id":"chatcmpl-66dde41bbbe27f3b743a6c2a","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将 menuItem 的 Checked 属性的值取反\n{"id":"chatcmpl-66dde41bf30b393947a79907","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将menuItem的Checked属性取反\nmenuItem.Checked = !menuItem.Checked;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":23,"total_tokens":71}}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":26,"total_tokens":74}}
+		{"id":"chatcmpl-66dde41bf9e61e3ab39747cc","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个 RegistryKey 对象，用于操作注册表\nusing (RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(\"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\Updates\", writable: true))\n{\n    // 检查是否成功打开了注册表的指定子键\n    if (registryKey == null)\n    {\n        // 如果注册表子键不存在，则创建一个新的子键\n        using RegistryKey registryKey2 = Registry.CurrentUser.CreateSubKey(\"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\Updates\");\n        // 在新创建的子键中设置一个值，名为 \"CheckForUpdates\"，值为 menuItem.Checked 的字符串表达形式\n        registryKey2.SetValue(\"CheckForUpdates\", menuItem.Checked.ToString());\n    }\n    else\n    {\n        // 如果注册表子键已存在，则直接在该子键中设置值\n        registryKey.SetValue(\"CheckForUpdates\", menuItem.Checked.ToString());\n    }\n}\n```\n\n以上代码块中，我为每一行代码添加了注释，解释了代码的作用，但未对原有代码进行任何省略或修改。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":157,"completion_tokens":240,"total_tokens":397}}
+		{"id":"chatcmpl-66dde41b6724ba48708c4537","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查menuItem是否被选中\nif (menuItem.Checked)\n{\n    // 如果menuItem被选中，记录调试信息表示更新检查功能已启用\n    log.Debug(\"Check for updates enabled\");\n    \n    // 向通知中心发送信息，告知用户更新检查功能已启用，使用信息图标\n    SendMessagetoNotificationCenter(\"Check for updates enabled\", ToolTipIcon.Info);\n    \n    // 改变SoftwareUpdateTimer的间隔时间，设置为2000毫秒后开始，之后每隔-1毫秒（即不重复）执行\n    SoftwareUpdateTimer.Change(2000, -1);\n}\nelse\n{\n    // 如果menuItem没有被选中，记录调试信息表示更新检查功能已禁用\n    log.Debug(\"Check for updates disabled\");\n    \n    // 向通知中心发送信息，告知用户更新检查功能已禁用，使用警告图标\n    SendMessagetoNotificationCenter(\"Check for updates disabled\", ToolTipIcon.Warning);\n}\n```\n\n以上代码添加了注释，解释了每一行代码的作用，但未对原有代码进行省略或修改。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":123,"completion_tokens":228,"total_tokens":351}}
+	}
+
+	public static string GetEnumDescription(Enum value)
+	{
+		{"id":"chatcmpl-66dde41be84c5fde1e39decc","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查value对象的类型\nif (value.GetType().GetField(value.ToString()) // 获取value对象的类型对应的字段\n    .GetCustomAttributes(typeof(DescriptionAttribute), inherit: false) // 获取该字段上的DescriptionAttribute自定义属性\n    is DescriptionAttribute[] source \u0026\u0026 source.Any()) // 判断是否存在DescriptionAttribute属性并且至少有一个\n{\n    // 如果存在，则返回第一个DescriptionAttribute的Description属性值\n    return source.First().Description;\n}\n```\n\n这段代码的作用是：首先通过`value`对象获取其类型，然后获取该类型对应字段的`DescriptionAttribute`自定义属性。如果该字段上有`DescriptionAttribute`属性并且至少有一个，则返回第一个`DescriptionAttribute`的`Description`属性值。如果没有，则不返回任何内容。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":83,"completion_tokens":163,"total_tokens":246}}
+		{"id":"chatcmpl-66dde41bc5b5a2f89d32e9d8","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将返回值转换为字符串并返回\nreturn value.ToString();\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":21,"total_tokens":66}}
+	}
+
+	private void OnPowerChange(object s, PowerModeChangedEventArgs e)
+	{
+		{"id":"chatcmpl-66dde41b8619de1059b2cd56","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 记录一个调试信息，表明检测到了电源事件的变化\n// 其中，{0} 会被替换为 e.Mode 属性的字符串表示形式\nlog.Debug(\"Power event change detected : {0}\", e.Mode.ToString());\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":57,"completion_tokens":56,"total_tokens":113}}
+		switch (e.Mode)
+		{
+		case PowerModes.Resume:
+			Thread.Sleep(3000);
+			log.Debug("Sleep for 3 sec to avoid resuming before service");
+			hasTimerDisabled = false;
+			OnStartupResumeCryoSuccess = false;
+			RememberCryoSetting = IsRememberCryoEnabled();
+			CheckResumeCryoOperation();
+			break;
+		case PowerModes.Suspend:
+			if (swRememberCryoMenuItem.Checked)
+			{
+				if (cryoMode.Checked)
+				{
+					SaveUserCryoSelection(status: true);
+				}
+				else
+				{
+					SaveUserCryoSelection(status: false);
+				}
+			}
+			else
+			{
+				SaveUserCryoSelection(status: false);
+			}
+			{"id":"chatcmpl-66dde4176805ac86760c32ae","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```javascript\n// 将计时器禁用设置为真\nhasTimerDisabled = true;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":47,"completion_tokens":22,"total_tokens":69}}
+			break;
+		default:
+			SaveUserCryoSelection(status: false);
+			break;
+		}
+	}
+
+	private void ToggleRememberCryoForSleep(object sender, EventArgs e)
+	{
+		{"id":"chatcmpl-66dde41737d2ca1ac553e76a","object":"chat.completion","created":1725817879,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个MenuItem类型的变量menuItem\n{"id":"chatcmpl-66dde41b6724ba48708c4536","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个MenuItem类型的变量menuItem，并将sender参数赋值给它\n{"id":"chatcmpl-66dde41b9509fe3cc8af8be0","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 定义一个MenuItem类型的变量menuItem\nMenuItem menuItem = (MenuItem)sender;\n```\n这段代码定义了一个名为`menuItem`的变量，它的类型是`MenuItem`。这个变量被初始化为`sender`参数的值，`sender`通常在事件处理程序中用来引用触发事件的对象。这里没有修改或省略原有的代码，只是添加了注释来解释代码的作用。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":85,"total_tokens":133}}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":29,"total_tokens":77}}\n// 将sender强制类型转换为MenuItem类型并赋值给menuItem变量\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":39,"total_tokens":87}}
+		{"id":"chatcmpl-66dde41bbbe27f3b743a6c2a","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将 menuItem 的 Checked 属性的值取反\n{"id":"chatcmpl-66dde41bf30b393947a79907","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 将menuItem的Checked属性取反\nmenuItem.Checked = !menuItem.Checked;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":23,"total_tokens":71}}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":48,"completion_tokens":26,"total_tokens":74}}
+		{"id":"chatcmpl-66dde41ba0b445598af8b0ac","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 使用using语句确保RegistryKey对象在使用完毕后能够正确释放资源\nusing (RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(\"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\CryoMode\", writable: true))\n{\n    // 检查是否成功打开指定的注册表子键\n    if (registryKey == null)\n    {\n        // 如果注册表子键不存在，则创建一个新的子键\n        using RegistryKey registryKey2 = Registry.CurrentUser.CreateSubKey(\"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\CryoMode\");\n        // 在新创建的子键中设置\"RememberCryoMode\"的值，值为menuItem.Checked的布尔值转换为字符串\n        registryKey2.SetValue(\"RememberCryoMode\", menuItem.Checked.ToString());\n    }\n    else\n    {\n        // 如果注册表子键存在，则直接更新\"RememberCryoMode\"的值\n        registryKey.SetValue(\"RememberCryoMode\", menuItem.Checked.ToString());\n    }\n}\n```\n\n以上代码段添加了注释，解释了每个代码块的功能，但未修改或省略任何原有代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":163,"completion_tokens":242,"total_tokens":405}}
+		{"id":"chatcmpl-66dde41be1666afe278f4e79","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查menuItem是否被选中\nif (menuItem.Checked)\n{\n    // 如果menuItem被选中，将swRememberCryoMenuItem设置为选中状态\n    swRememberCryoMenuItem.Checked = true;\n    // 在日志中记录“Remember Cryo Mode enabled”信息\n    log.Debug(\"Remember Cryo Mode enabled\");\n    // 向通知中心发送信息，告知“Remember Cryo Mode saved”\n    SendMessagetoNotificationCenter(\"Remember Cryo Mode saved\", ToolTipIcon.Info);\n}\nelse\n{\n    // 如果menuItem没有被选中，将swRememberCryoMenuItem设置为未选中状态\n    swRememberCryoMenuItem.Checked = false;\n    // 在日志中记录“Remember Cryo Mode disabled”信息\n    log.Debug(\"Remember Cryo Mode disabled\");\n    // 向通知中心发送信息，告知“Remember Cryo Mode removed”\n    SendMessagetoNotificationCenter(\"Remember Cryo Mode removed\", ToolTipIcon.Info);\n}\n```\n以上代码中，我为每一行代码添加了注释，解释了代码的功能，但未对原有代码进行任何修改或省略。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":135,"completion_tokens":235,"total_tokens":370}}
+	}
+
+	private void SaveUserCryoSelection(bool status)
+	{
+		{"id":"chatcmpl-66dde41b2f2dbaf3956bdcd2","object":"chat.completion","created":1725817883,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\ntry\n{\n    // 尝试以可写方式打开当前用户注册表中的特定子键\n    using RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(\"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\CryoMode\", writable: true);\n    // 如果子键不存在，则创建该子键\n    if (registryKey == null)\n    {\n        using (RegistryKey registryKey2 = Registry.CurrentUser.CreateSubKey(\"Software\\\\Intel Corporation\\\\Intel Cryo Cooling Technology\\\\CryoMode\"))\n        {\n            // 为新创建的子键设置值\n            registryKey2.SetValue(\"CurrentlyInCryoMode\", status);\n            // 创建子键后退出方法\n            return;\n        }\n    }\n    // 如果子键存在，则直接设置值\n    registryKey.SetValue(\"CurrentlyInCryoMode\", status);\n}\n// 捕获任何异常并记录错误信息\ncatch (Exception)\n{\n    log.Debug(\"Exception saving cryo mode to registry failed.\");\n}\n```\n\n以上代码中的注释详细解释了每一部分的功能和目的，没有省略或修改原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":187,"completion_tokens":241,"total_tokens":428}}
+	}
+
+	private void ResumeCryoMode()
+	{
+		try
+		{
+			log.Debug("BGN ResumeCryoMode with RememberCryoSetting = {}", RememberCryoSetting);
+			if (RememberCryoSetting)
+			{
+				cryoMode.Checked = true;
+				log.Debug("Simulate a click");
+				cryoMode.PerformClick();
+			}
+		}
+		catch (Exception)
+		{
+			log.Debug("Exception trying to resume cryo mode.");
+		}
+	}
+
+	public bool CheckServiceRunning()
+	{
+		try
+		{
+			ServiceController[] services = ServiceController.GetServices();
+			foreach (ServiceController serviceController in services)
+			{
+				if (serviceController.ServiceName == "SacWindowsService")
+				{
+					return serviceController.Status == ServiceControllerStatus.Running;
+				}
+			}
+			return false;
+		}
+		catch (Exception ex)
+		{
+			log.Error(ex.Message);
+			return false;
+		}
+	}
+
+	protected override void Dispose(bool disposing)
+	{
+		{"id":"chatcmpl-66dde41cb2bc02790419cbb5","object":"chat.completion","created":1725817884,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 检查是否正在释放资源\nif (disposing \u0026\u0026 components != null)\n{\n    // 如果正在释放资源且components不为空，则调用components的Dispose方法来释放资源\n    components.Dispose();\n}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":57,"completion_tokens":48,"total_tokens":105}}
+		{"id":"chatcmpl-66dde41c2f2dbaf3956bdcd3","object":"chat.completion","created":1725817884,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 释放资源\nbase.Dispose(disposing);\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":45,"completion_tokens":15,"total_tokens":60}}
+	}
+
+	private void InitializeComponent()
+	{
+		{"id":"chatcmpl-66dde41ce1666afe278f4e7a","object":"chat.completion","created":1725817884,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// 创建一个System.ComponentModel.Container类的实例，用于管理组件\nthis.components = new System.ComponentModel.Container();\n```\n这段注释解释了代码的作用，即创建一个容器实例来管理组件，但并没有修改或省略原有的代码。"},"finish_reason":"stop"}],"usage":{"prompt_tokens":49,"completion_tokens":51,"total_tokens":100}}
+		{"id":"chatcmpl-66dde41cefe3b3669c9b98b0","object":"chat.completion","created":1725817884,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 指定窗体的自动调整行为，以适应字体大小的变化\nbase.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":50,"completion_tokens":31,"total_tokens":81}}
+		{"id":"chatcmpl-66dde41cd8f1a02e49dff51a","object":"chat.completion","created":1725817884,"model":"moonshot-v1-8k","choices":[{"index":0,"message":{"role":"assistant","content":"```csharp\n// 设置窗口的客户区大小为800像素宽和450像素高\nbase.ClientSize = new System.Drawing.Size(800, 450);\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":54,"completion_tokens":34,"total_tokens":88}}
+		this.Text = "Form1";
+	}
+}

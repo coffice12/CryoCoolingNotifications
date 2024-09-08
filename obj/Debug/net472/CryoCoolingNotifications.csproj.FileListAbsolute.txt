@@ -1,0 +1,14 @@
+C:\Users\potat\Desktop\cryocooling\bin\Debug\net472\CryoCoolingNotifications.exe.config
+C:\Users\potat\Desktop\cryocooling\bin\Debug\net472\CryoCoolingNotifications.exe
+C:\Users\potat\Desktop\cryocooling\bin\Debug\net472\CryoCoolingNotifications.pdb
+C:\Users\potat\Desktop\cryocooling\bin\Debug\net472\NLog.dll
+C:\Users\potat\Desktop\cryocooling\bin\Debug\net472\SoftwareUpdateLib.dll
+C:\Users\potat\Desktop\cryocooling\obj\Debug\net472\CryoCoolingNotifications.csproj.AssemblyReference.cache
+C:\Users\potat\Desktop\cryocooling\obj\Debug\net472\IntelCryoCooling.Notifications.CustomMessageBox.resources
+C:\Users\potat\Desktop\cryocooling\obj\Debug\net472\IntelCryoCooling.Properties.Resources.resources
+C:\Users\potat\Desktop\cryocooling\obj\Debug\net472\CryoCoolingNotifications.csproj.GenerateResource.cache
+C:\Users\potat\Desktop\cryocooling\obj\Debug\net472\CryoCoolingNotifications.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\potat\Desktop\cryocooling\obj\Debug\net472\CryoCoolingNotifications.csproj.CoreCompileInputs.cache
+C:\Users\potat\Desktop\cryocooling\obj\Debug\net472\CryoCool.F141D155.Up2Date
+C:\Users\potat\Desktop\cryocooling\obj\Debug\net472\CryoCoolingNotifications.exe
+C:\Users\potat\Desktop\cryocooling\obj\Debug\net472\CryoCoolingNotifications.pdb

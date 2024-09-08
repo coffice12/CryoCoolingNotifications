@@ -1,0 +1,631 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\potat\\Desktop\\cryocooling\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.notifications\\trayicon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.notifications\\trayicon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.notifications\\custommessagebox.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.notifications\\custommessagebox.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|C:\\Users\\potat\\Desktop\\cryocooling\\intelcryocooling.notifications\\custommessagebox.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.notifications\\custommessagebox.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|C:\\Users\\potat\\Desktop\\cryocooling\\intelcryocooling.notifications\\trayicon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.notifications\\trayicon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|C:\\Users\\potat\\Desktop\\cryocooling\\intelcryocooling.notifications\\diagnostictest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.notifications\\diagnostictest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.notifications\\constants.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.notifications\\constants.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling\\systeminfohelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling\\systeminfohelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling\\ifaq.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling\\ifaq.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling\\faqweb.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling\\faqweb.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling\\faqfile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling\\faqfile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\getntcresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\getntcresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\gethwversionrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\gethwversionrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\icryocoolingservicechannel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\icryocoolingservicechannel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\icryocoolingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\icryocoolingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\hwupdatestatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\hwupdatestatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\bist2response.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\bist2response.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\bist2request.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\bist2request.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\getvoltageandcurrentresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\getvoltageandcurrentresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\setirequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\setirequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.properties\\settings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.properties\\settings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.properties\\resources.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.properties\\resources.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\setiresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\setiresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\setfanpwmrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\setfanpwmrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\getdresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\getdresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\getdrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\getdrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\getdewpointresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\getdewpointresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\getdewpointrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\getdewpointrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.notifications\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.notifications\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\getboardtemperaturerequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\getboardtemperaturerequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\cryocoolingnotifications.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:cryocoolingnotifications.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\setstandbymoderesponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\setstandbymoderesponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\settecpowercapresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\settecpowercapresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\settecpowerrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\settecpowerrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\settecpowerresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\settecpowerresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.condensationcontrolserviceref\\gettecpowerrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.condensationcontrolserviceref\\gettecpowerrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.notifications\\uierrorcodes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.notifications\\uierrorcodes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|c:\\users\\potat\\desktop\\cryocooling\\intelcryocooling.notifications\\uimode.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D949B85-3E7E-4880-92DC-C421A877BCF4}|CryoCoolingNotifications.csproj|solutionrelative:intelcryocooling.notifications\\uimode.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "TrayIcon.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\TrayIcon.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.Notifications\\TrayIcon.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\TrayIcon.cs",
+              "RelativeToolTip": "IntelCryoCooling.Notifications\\TrayIcon.cs",
+              "ViewState": "AgIAACoFAAAAAAAAAAAAAD4FAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:46:18.293Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CustomMessageBox.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\CustomMessageBox.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.Notifications\\CustomMessageBox.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\CustomMessageBox.cs",
+              "RelativeToolTip": "IntelCryoCooling.Notifications\\CustomMessageBox.cs",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAACQAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:44:45.318Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "SystemInfoHelper.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling\\SystemInfoHelper.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling\\SystemInfoHelper.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling\\SystemInfoHelper.cs",
+              "RelativeToolTip": "IntelCryoCooling\\SystemInfoHelper.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:43:41.187Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "IFaq.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling\\IFaq.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling\\IFaq.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling\\IFaq.cs",
+              "RelativeToolTip": "IntelCryoCooling\\IFaq.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:43:39.857Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "GetNTCResponse.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetNTCResponse.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\GetNTCResponse.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetNTCResponse.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\GetNTCResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:42:19.136Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "GetHWVersionRequest.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetHWVersionRequest.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\GetHWVersionRequest.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetHWVersionRequest.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\GetHWVersionRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:42:18.383Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "ICryoCoolingServiceChannel.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\ICryoCoolingServiceChannel.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\ICryoCoolingServiceChannel.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\ICryoCoolingServiceChannel.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\ICryoCoolingServiceChannel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:40:28.161Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "app.config",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\app.config",
+              "RelativeDocumentMoniker": "app.config",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\app.config",
+              "RelativeToolTip": "app.config",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
+              "WhenOpened": "2024-09-08T15:35:31.581Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "CustomMessageBox.cs [\u8BBE\u8BA1]",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\CustomMessageBox.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.Notifications\\CustomMessageBox.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\CustomMessageBox.cs [\u8BBE\u8BA1]",
+              "RelativeToolTip": "IntelCryoCooling.Notifications\\CustomMessageBox.cs [\u8BBE\u8BA1]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:28:10.216Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Constants.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\Constants.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.Notifications\\Constants.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\Constants.cs",
+              "RelativeToolTip": "IntelCryoCooling.Notifications\\Constants.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:28:07.664Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "DiagnosticTest.cs [\u8BBE\u8BA1]",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\DiagnosticTest.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.Notifications\\DiagnosticTest.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\DiagnosticTest.cs [\u8BBE\u8BA1]",
+              "RelativeToolTip": "IntelCryoCooling.Notifications\\DiagnosticTest.cs [\u8BBE\u8BA1]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:28:12.031Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "TrayIcon.cs [\u8BBE\u8BA1]",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\TrayIcon.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.Notifications\\TrayIcon.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\TrayIcon.cs [\u8BBE\u8BA1]",
+              "RelativeToolTip": "IntelCryoCooling.Notifications\\TrayIcon.cs [\u8BBE\u8BA1]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:28:17.62Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "GetVoltageAndCurrentResponse.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetVoltageAndCurrentResponse.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\GetVoltageAndCurrentResponse.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetVoltageAndCurrentResponse.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\GetVoltageAndCurrentResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:39:27.254Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "HwUpdateStatus.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\HwUpdateStatus.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\HwUpdateStatus.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\HwUpdateStatus.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\HwUpdateStatus.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:39:30.65Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "ICryoCoolingService.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\ICryoCoolingService.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\ICryoCoolingService.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\ICryoCoolingService.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\ICryoCoolingService.cs",
+              "ViewState": "AgIAAOUAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:39:39.456Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "Bist2Request.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\Bist2Request.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\Bist2Request.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\Bist2Request.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\Bist2Request.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:40:17.512Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "SetIResponse.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetIResponse.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\SetIResponse.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetIResponse.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\SetIResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:34:55.514Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "FaqFile.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling\\FaqFile.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling\\FaqFile.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling\\FaqFile.cs",
+              "RelativeToolTip": "IntelCryoCooling\\FaqFile.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:33:31.868Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "FaqWeb.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling\\FaqWeb.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling\\FaqWeb.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling\\FaqWeb.cs",
+              "RelativeToolTip": "IntelCryoCooling\\FaqWeb.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:25:26.178Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "Bist2Response.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\Bist2Response.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\Bist2Response.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\Bist2Response.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\Bist2Response.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:40:19.139Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "SetIRequest.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetIRequest.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\SetIRequest.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetIRequest.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\SetIRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAACAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:34:54.679Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "SetFanPwmRequest.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetFanPwmRequest.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\SetFanPwmRequest.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetFanPwmRequest.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\SetFanPwmRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:34:38.064Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "GetDResponse.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetDResponse.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\GetDResponse.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetDResponse.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\GetDResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:34:25.17Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "GetDRequest.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetDRequest.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\GetDRequest.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetDRequest.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\GetDRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:34:21.966Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "GetDewPointResponse.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetDewPointResponse.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\GetDewPointResponse.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetDewPointResponse.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\GetDewPointResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:33:57.536Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "GetDewPointRequest.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetDewPointRequest.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\GetDewPointRequest.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetDewPointRequest.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\GetDewPointRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:33:54.882Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "GetBoardTemperatureRequest.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetBoardTemperatureRequest.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\GetBoardTemperatureRequest.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetBoardTemperatureRequest.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\GetBoardTemperatureRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T15:32:35.606Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "Resources.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Properties\\Resources.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.Properties\\Resources.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Properties\\Resources.cs",
+              "RelativeToolTip": "IntelCryoCooling.Properties\\Resources.cs",
+              "ViewState": "AgIAACEAAAAAAAAAAAAIwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:25:48.999Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "Settings.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Properties\\Settings.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.Properties\\Settings.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Properties\\Settings.cs",
+              "RelativeToolTip": "IntelCryoCooling.Properties\\Settings.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:25:44.677Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 31,
+              "Title": "SetStandbyModeResponse.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetStandbyModeResponse.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\SetStandbyModeResponse.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetStandbyModeResponse.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\SetStandbyModeResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:31:11.987Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 32,
+              "Title": "SetTECPowerCapResponse.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetTECPowerCapResponse.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\SetTECPowerCapResponse.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetTECPowerCapResponse.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\SetTECPowerCapResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:31:11.228Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
+              "Title": "SetTECPowerRequest.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetTECPowerRequest.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\SetTECPowerRequest.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetTECPowerRequest.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\SetTECPowerRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:31:10.448Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 34,
+              "Title": "SetTECPowerResponse.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetTECPowerResponse.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\SetTECPowerResponse.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\SetTECPowerResponse.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\SetTECPowerResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:31:05.893Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 35,
+              "Title": "GetTECPowerRequest.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetTECPowerRequest.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.CondensationControlServiceRef\\GetTECPowerRequest.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.CondensationControlServiceRef\\GetTECPowerRequest.cs",
+              "RelativeToolTip": "IntelCryoCooling.CondensationControlServiceRef\\GetTECPowerRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:30:53.343Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\Program.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.Notifications\\Program.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\Program.cs",
+              "RelativeToolTip": "IntelCryoCooling.Notifications\\Program.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAACYAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:26:03.831Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 36,
+              "Title": "UIErrorCodes.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\UIErrorCodes.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.Notifications\\UIErrorCodes.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\UIErrorCodes.cs",
+              "RelativeToolTip": "IntelCryoCooling.Notifications\\UIErrorCodes.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:28:24.935Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "CryoCoolingNotifications.csproj",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\CryoCoolingNotifications.csproj",
+              "RelativeDocumentMoniker": "CryoCoolingNotifications.csproj",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\CryoCoolingNotifications.csproj",
+              "RelativeToolTip": "CryoCoolingNotifications.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-09-08T12:28:02.703Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 37,
+              "Title": "UIMode.cs",
+              "DocumentMoniker": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\UIMode.cs",
+              "RelativeDocumentMoniker": "IntelCryoCooling.Notifications\\UIMode.cs",
+              "ToolTip": "C:\\Users\\potat\\Desktop\\cryocooling\\IntelCryoCooling.Notifications\\UIMode.cs",
+              "RelativeToolTip": "IntelCryoCooling.Notifications\\UIMode.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T12:28:24.156Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
